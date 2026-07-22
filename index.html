@@ -91,29 +91,46 @@
 
 <!-- Tabs -->
 <div class="tabs">
-  <button class="tab-button active" onclick="openTab('about')">About</button>
-  <button class="tab-button" onclick="openTab('research')">Research</button>
-  <button class="tab-button" onclick="openTab('contact')">Contact</button>
+  <button class="tab-button active" onclick="openTab('about', this)">About</button>
+  <button class="tab-button" onclick="openTab('research', this)">Research</button>
+  <button class="tab-button" onclick="openTab('contact', this)">Contact</button>
 </div>
 
 <!-- About -->
 <div id="about" class="content active">
-  <h1>About Me</h1>
-  <p>In 2023 the Pelagic Ecosystems Lab started a new research direction to understand how urban environments interact with oceans, change their character, and impact their health. Our work is focusing on Vancouver as a study area.</p> 
-  <p>Read the project announcement here.</p>  
-  <p>Current research questions being tackled are:
+  <h1>About Our Research</h1>
 
-     What is the organic matter and inorganic nutrient content of stormwater, urban rivers and other urban inputs to the coastal ocean?
-     What are the biogeochemical signatures of urban inputs to the nearshore ocean?
-     What is the footprint of urban material inputs in the coastal ocean?
-     What is the fate of urban material inputs in the coastal ocean?
-     How do urban material inputs affect the health of individual organisms and the food webs that they are a part of, and how does this impact the ecosystem services that they provide?
-     What is the effect of urbanization on marine biodiversity?</p>
+  <p>In 2023, the Pelagic Ecosystems Lab launched a new research direction to understand how urban environments interact with the coastal ocean, influence ecosystem health, and shape biogeochemical processes. Our work focuses on the Vancouver region as a model urban–marine interface.</p>
 
-<p>A map of study sites can be found here.</p>
+  <p>
+    <a href="https://oceans.ubc.ca/2023/08/29/iof-associate-professor-receives-nserc-discovery-grant-to-research-the-impacts-of-urbanization-on-the-coastal-ocean/" target="_blank">
+      Read the project announcement
+    </a>
+  </p>
 
-  <p>Collaborators
-      Tsleil-Waututh Nation, Metro Vancouver, Scholes Lab, Fisheries and Oceans Canada</p>
+  <h2>Current Research Questions</h2>
+  <ul>
+    <li>What is the organic matter and inorganic nutrient content of stormwater, urban rivers, and other urban inputs to the coastal ocean?</li>
+    <li>What biogeochemical signatures do urban inputs leave in the nearshore ocean?</li>
+    <li>What is the spatial footprint of urban material inputs in coastal waters?</li>
+    <li>What is the fate and transformation of urban-derived materials once they enter the ocean?</li>
+    <li>How do urban inputs affect organism health, food webs, and the ecosystem services they support?</li>
+    <li>How does urbanization influence marine biodiversity?</li>
+  </ul>
+
+  <p>
+    <a href="https://www.google.com/maps/d/u/0/viewer?mid=1jnSrcZep1-xvjDW4igHAW3HhqRavRQQ&ll=49.347595158040754%2C-122.36356574999999&z=10" target="_blank">
+      View the map of study sites
+    </a>
+  </p>
+
+  <h2>Collaborators</h2>
+  <ul>
+    <li>Tsleil-Waututh Nation</li>
+    <li>Metro Vancouver</li>
+    <li>Scholes Lab</li>
+    <li>Fisheries and Oceans Canada</li>
+  </ul>
 </div>
 
 <!-- Research -->
@@ -147,7 +164,7 @@
 </div>
 
 <script>
-  function openTab(tabName) {
+  function openTab(tabName, button) {
     document.querySelectorAll('.content').forEach(section => {
       section.classList.remove('active');
     });
@@ -157,7 +174,7 @@
     });
 
     document.getElementById(tabName).classList.add('active');
-    event.target.classList.add('active');
+    button.classList.add('active');
   }
 </script>
 
