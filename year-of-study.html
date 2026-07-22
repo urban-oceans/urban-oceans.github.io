@@ -44,14 +44,24 @@
   <h1>Year of Study</h1>
   <p>This page shows the number of studies conducted each year based on the dataset.</p>
 
-  <!-- Slider -->
-  <label for="yearSlider" style="font-weight:600;">Select Year:</label>
-  <input type="range" id="yearSlider" min="1931" max="2024" step="1" value="1931" style="width:100%;">
+  <!-- Range Selection -->
+  <div style="margin-bottom:20px;">
+    <label style="font-weight:600;">Start Year:</label>
+    <input type="number" id="startYearInput" min="1900" max="2024" value="1900"
+           style="width:120px; margin-left:10px;">
+  
+    <label style="font-weight:600; margin-left:30px;">End Year:</label>
+    <input type="number" id="endYearInput" min="1900" max="2024" value="1931"
+           style="width:120px; margin-left:10px;">
+  </div>
+  
+  <!-- Range Sliders -->
+  <input type="range" id="startYearSlider" min="1900" max="2024" step="1" value="1900" style="width:100%; margin-bottom:10px;">
+  <input type="range" id="endYearSlider" min="1900" max="2024" step="1" value="1931" style="width:100%;">
+  
+  <!-- Cumulative text -->
+  <p id="cumulativeDisplay" style="font-size:1.2rem; margin-top:20px;"></p>
 
-  <p style="font-size:1.2rem; margin-top:20px;">
-    Year: <span id="yearDisplay">1931</span><br>
-    Studies: <span id="studyDisplay">0</span>
-  </p>
 
   <!-- Dynamic Bar Chart -->
   <canvas id="studyChart" width="400" height="200"></canvas>
@@ -84,16 +94,11 @@ async function loadCSV() {
   return { years, counts, studyData };
 }
 
-const slider = document.getElementById("yearSlider");
-const yearInput = document.getElementById("yearInput");
-const yearDisplay = document.getElementById("yearDisplay");
-const studyDisplay = document.getElementById("studyDisplay");
-
-/* cumulative text under slider */
-const cumulativeDisplay = document.createElement("p");
-cumulativeDisplay.style.fontSize = "1.2rem";
-cumulativeDisplay.style.marginTop = "10px";
-slider.insertAdjacentElement("afterend", cumulativeDisplay);
+const startInput = document.getElementById("startYearInput");
+const endInput = document.getElementById("endYearInput");
+const startSlider = document.getElementById("startYearSlider");
+const endSlider = document.getElementById("endYearSlider");
+const cumulativeDisplay = document.getElementById("cumulativeDisplay");
 
 loadCSV().then(data => {
 
@@ -121,51 +126,60 @@ loadCSV().then(data => {
     }
   });
 
-  function updateYear(year) {
-    yearDisplay.textContent = year;
-    studyDisplay.textContent = data.studyData[year] || 0;
+  function updateRange(startYear, endYear) {
+    /* Fix reversed ranges */
+    if (Number(startYear) > Number(endYear)) {
+      endYear = startYear;
+      endInput.value = endYear;
+      endSlider.value = endYear;
+    }
 
-    /* cumulative total */
+    /* cumulative = all studies up to endYear */
     const cumulative = data.years
-      .filter(y => Number(y) <= Number(year))
+      .filter(y => Number(y) <= Number(endYear))
       .map(y => data.studyData[y])
       .reduce((a, b) => a + b, 0);
 
-    cumulativeDisplay.textContent = `Cumulative Studies up to ${year}: ${cumulative}`;
+    cumulativeDisplay.textContent =
+      `Cumulative Studies up to ${endYear}: ${cumulative}`;
 
-    /* color logic */
+    /* Color logic */
     chart.data.datasets[0].backgroundColor = data.years.map(y => {
-      if (Number(y) < Number(year)) return "rgba(255, 140, 0, 0.8)";   // orange
-      if (Number(y) === Number(year)) return "rgba(255, 215, 0, 0.9)"; // yellow
-      return "rgba(42, 92, 123, 0.4)";                                // muted blue
+      if (Number(y) < Number(startYear)) return "rgba(255, 140, 0, 0.8)";   // orange (past)
+      if (Number(y) >= Number(startYear) && Number(y) <= Number(endYear))
+        return "rgba(255, 215, 0, 0.9)";                                   // yellow (range)
+      return "rgba(42, 92, 123, 0.4)";                                     // blue (future)
     });
 
     chart.update();
   }
 
-  /* slider → input */
-  slider.addEventListener("input", () => {
-    yearInput.value = slider.value;
-    updateYear(slider.value);
+  /* Sync sliders → inputs */
+  startSlider.addEventListener("input", () => {
+    startInput.value = startSlider.value;
+    updateRange(startSlider.value, endSlider.value);
   });
 
-  /* input → slider */
-  yearInput.addEventListener("input", () => {
-    let year = Number(yearInput.value);
+  endSlider.addEventListener("input", () => {
+    endInput.value = endSlider.value;
+    updateRange(startSlider.value, endSlider.value);
+  });
 
-    if (year < 1900) year = 1900;
-    if (year > 2024) year = 2024;
+  /* Sync inputs → sliders */
+  startInput.addEventListener("input", () => {
+    startSlider.value = startInput.value;
+    updateRange(startInput.value, endInput.value);
+  });
 
-    slider.value = year;
-    updateYear(year);
+  endInput.addEventListener("input", () => {
+    endSlider.value = endInput.value;
+    updateRange(startInput.value, endInput.value);
   });
 
   /* initialize */
-  updateYear(slider.value);
+  updateRange(startSlider.value, endSlider.value);
 });
 </script>
-
-
 
 
 </body>
