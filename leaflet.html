@@ -23,7 +23,7 @@
 <body>
 
 <h2>Percent Distribution of Studies by Region</h2>
-<p></p>
+<p>This map uses your <b>Area Polygon.csv</b> file.</p>
 
 <div id="map"></div>
 
@@ -37,79 +37,40 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 /* -----------------------------------------------------
-   YOUR CSV VALUES (converted into JS object)
+   LOAD CSV FILE
 ----------------------------------------------------- */
 
-const regionPercent = {
-  "Boundary Bay": 0.114606742,
-  "Burrard Inlet": 0.269662921,
-  "False Creek": 0.015730337,
-  "Fraser River Estuary": 0.471910112,
-  "Howe Sound": 0.123595506,
-  "Salish Sea": 0.053932584,
-  "Strait of Georgia": 0.294382022
-};
+async function loadCSV() {
+  const response = await fetch("Area Polygon.csv");
+  const text = await response.text();
 
-/* -----------------------------------------------------
-   EXAMPLE POLYGONS (replace with real shapes later)
------------------------------------------------------ */
+  const rows = text.trim().split("\n").slice(1); // skip header
 
-const polygons = {
-  "Boundary Bay": [
-    [49.045, -123.045],
-    [49.060, -123.030],
-    [49.065, -123.000],
-    [49.050, -122.990],
-    [49.040, -123.010]
-  ],
+  const regions = [];
 
-  "Burrard Inlet": [
-    [49.300, -123.100],
-    [49.305, -123.080],
-    [49.310, -123.060],
-    [49.295, -123.050],
-    [49.285, -123.070]
-  ],
+  rows.forEach(row => {
+    const [polygonStr, name, percentStr] = row.split(",");
 
-  "False Creek": [
-    [49.270, -123.140],
-    [49.275, -123.130],
-    [49.265, -123.120],
-    [49.260, -123.130]
-  ],
+    // Parse polygon string "(lat lng)(lat lng)..."
+    const coords = polygonStr
+      .trim()
+      .split(")")
+      .filter(s => s.trim() !== "")
+      .map(s => {
+        const cleaned = s.replace("(", "").trim();
+        const [lat, lng] = cleaned.split(" ").map(Number);
+        return [lat, lng];
+      });
 
-  "Fraser River Estuary": [
-    [49.150, -123.000],
-    [49.160, -122.980],
-    [49.170, -122.960],
-    [49.155, -122.940],
-    [49.140, -122.960]
-  ],
+    regions.push({
+      name: name.trim(),
+      percent: Number(percentStr.trim()),
+      polygon: coords
+    });
+  });
 
-  "Howe Sound": [
-    [49.600, -123.300],
-    [49.620, -123.250],
-    [49.630, -123.200],
-    [49.610, -123.180],
-    [49.590, -123.220]
-  ],
-
-  "Salish Sea": [
-    [49.400, -123.400],
-    [49.450, -123.350],
-    [49.480, -123.300],
-    [49.430, -123.250],
-    [49.390, -123.300]
-  ],
-
-  "Strait of Georgia": [
-    [49.300, -123.300],
-    [49.350, -123.250],
-    [49.380, -123.200],
-    [49.330, -123.150],
-    [49.290, -123.200]
-  ]
-};
+  return regions;
+}
 
 /* -----------------------------------------------------
    COLOR SCALE BASED ON PERCENT DISTRIBUTION
@@ -124,25 +85,28 @@ function getColor(p) {
 }
 
 /* -----------------------------------------------------
-   ADD POLYGONS TO MAP
+   BUILD MAP USING CSV VALUES
 ----------------------------------------------------- */
 
-Object.keys(polygons).forEach(region => {
-  const percent = regionPercent[region];
+loadCSV().then(regions => {
 
-  L.polygon(polygons[region], {
-    color: "#005f8f",
-    fillColor: getColor(percent),
-    fillOpacity: 0.6,
-    weight: 2
-  })
-  .addTo(map)
-  .bindPopup(`
-    <b>${region}</b><br>
-    Percent of studies: ${(percent * 100).toFixed(2)}%
-  `);
+  regions.forEach(region => {
+
+    L.polygon(region.polygon, {
+      color: "#005f8f",
+      fillColor: getColor(region.percent),
+      fillOpacity: 0.6,
+      weight: 2
+    })
+    .addTo(map)
+    .bindPopup(`
+      <b>${region.name}</b><br>
+      Percent of studies: ${(region.percent * 100).toFixed(2)}%
+    `);
+
+  });
+
 });
-
 </script>
 
 </body>
