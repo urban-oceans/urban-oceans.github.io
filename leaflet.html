@@ -11,25 +11,53 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
-    /* ⭐ Make map taller */
-    #map {
-      height: 750px;   /* increased from 550px */
-      width: 100%;
-      margin-top: 20px;
-      border-radius: 10px;
+    /* --- PAGE LAYOUT --- */
+    body {
+      display: flex;
+      flex-direction: row;
+      margin: 0;
+      font-family: Arial, sans-serif;
     }
 
-    /* ⭐ Transparent labels (no white box) */
+    /* Left side table */
+    #sidebar {
+      width: 50%;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    /* Right side map */
+    #map {
+      width: 50%;
+      height: 900px; /* Taller map */
+    }
+
+    /* Table styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+      text-align: left;
+    }
+
+    th {
+      background: #f0f8ff;
+    }
+
+    /* Map label styling (inline text, no box) */
     .region-label {
-      background: transparent;   /* removed white box */
+      background: transparent;
       padding: 0px;
-      border-radius: 0px;
       font-size: 14px;
-      text-align: center;
-      color: #003f5c;
       font-weight: 600;
-      border: none;              /* remove border */
-      text-shadow: 1px 1px 2px white; /* improves readability */
+      color: #003f5c;
+      text-shadow: 1px 1px 2px white;
+      border: none;
     }
 
     /* Legend styling */
@@ -55,7 +83,18 @@
 
 <body>
 
-<h2>Percent Distribution of Studies by Region</h2>
+<!-- LEFT SIDE: TABLE -->
+<div id="sidebar">
+  <h2>Percent Distribution of Studies by Region</h2>
+  <table id="regionTable">
+    <tr>
+      <th>Region</th>
+      <th>Percent of Studies</th>
+    </tr>
+  </table>
+</div>
+
+<!-- RIGHT SIDE: MAP -->
 <div id="map"></div>
 
 <script>
@@ -118,13 +157,23 @@ function getColor(p) {
 }
 
 /* -----------------------------------------------------
-   BUILD MAP
+   BUILD MAP + TABLE
 ----------------------------------------------------- */
 
 loadCSV().then(regions => {
+  const table = document.getElementById("regionTable");
+
   regions.forEach(region => {
 
-    // Draw polygon
+    /* --- Add row to table --- */
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${region.name}</td>
+      <td>${(region.percent * 100).toFixed(2)}%</td>
+    `;
+    table.appendChild(row);
+
+    /* --- Draw polygon --- */
     L.polygon(region.polygon, {
       color: "#005f8f",
       fillColor: getColor(region.percent),
@@ -134,19 +183,19 @@ loadCSV().then(regions => {
     .addTo(map)
     .bindPopup(`
       <b>${region.name}</b><br>
-      Percent of studies: ${(region.percent * 100).toFixed(2)}%
+      ${(region.percent * 100).toFixed(2)}%
     `);
 
-    // Compute centroid for label
+    /* --- Compute centroid for label --- */
     const centroidLat = region.polygon.reduce((sum, c) => sum + c[0], 0) / region.polygon.length;
     const centroidLng = region.polygon.reduce((sum, c) => sum + c[1], 0) / region.polygon.length;
 
-    // Add region label (transparent)
+    /* --- Add inline label (one line) --- */
     L.marker([centroidLat, centroidLng], {
       icon: L.divIcon({
         className: "region-label",
-        html: `${region.name}<br>${(region.percent * 100).toFixed(1)}%`,
-        iconSize: [100, 40]
+        html: `${region.name} (${(region.percent * 100).toFixed(1)}%)`,
+        iconSize: [120, 20]
       })
     }).addTo(map);
   });
@@ -182,4 +231,3 @@ legend.addTo(map);
 
 </body>
 </html>
-
