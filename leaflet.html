@@ -46,6 +46,24 @@ fetch("articles.geojson")
       }
     }).addTo(map);
   });
+
+  <script>
+// Example polygon (rough shape)
+const boundaryBayPolygon = [
+  [49.045, -123.045],
+  [49.060, -123.030],
+  [49.065, -123.000],
+  [49.050, -122.990],
+  [49.040, -123.010]
+];
+
+L.polygon(boundaryBayPolygon, {
+  color: "#0077be",
+  fillColor: "#66c2ff",
+  fillOpacity: 0.5
+}).addTo(map).bindPopup("Boundary Bay");
+</script>
+
 </script>
 
 </body>
