@@ -11,22 +11,25 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
+    /* ⭐ Make map taller */
     #map {
-      height: 550px;
+      height: 750px;   /* increased from 550px */
       width: 100%;
       margin-top: 20px;
       border-radius: 10px;
     }
 
-    /* Region label styling */
+    /* ⭐ Transparent labels (no white box) */
     .region-label {
-      background: rgba(255,255,255,0.85);
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 12px;
+      background: transparent;   /* removed white box */
+      padding: 0px;
+      border-radius: 0px;
+      font-size: 14px;
       text-align: center;
       color: #003f5c;
-      border: 1px solid #c0d7e0;
+      font-weight: 600;
+      border: none;              /* remove border */
+      text-shadow: 1px 1px 2px white; /* improves readability */
     }
 
     /* Legend styling */
@@ -77,7 +80,6 @@ async function loadCSV() {
   const regions = [];
 
   rows.forEach(row => {
-    // Extract WKT polygon inside quotes
     const firstQuote = row.indexOf('"');
     const secondQuote = row.indexOf('"', firstQuote + 1);
 
@@ -87,16 +89,14 @@ async function loadCSV() {
     const name = rest[0].trim();
     const percent = Number(rest[1].trim());
 
-    // Remove POLYGON (( and ))
     const inner = wkt
       .replace("POLYGON ((", "")
       .replace("))", "")
       .trim();
 
-    // Split into coordinate pairs
     const coords = inner.split(",").map(pair => {
       const [lng, lat] = pair.trim().split(" ").map(Number);
-      return [lat, lng]; // Leaflet uses [lat, lng]
+      return [lat, lng];
     });
 
     regions.push({ name, percent, polygon: coords });
@@ -106,7 +106,7 @@ async function loadCSV() {
 }
 
 /* -----------------------------------------------------
-   COLOR SCALE BASED ON PERCENT DISTRIBUTION
+   COLOR SCALE
 ----------------------------------------------------- */
 
 function getColor(p) {
@@ -118,7 +118,7 @@ function getColor(p) {
 }
 
 /* -----------------------------------------------------
-   BUILD MAP USING CSV VALUES
+   BUILD MAP
 ----------------------------------------------------- */
 
 loadCSV().then(regions => {
@@ -141,11 +141,11 @@ loadCSV().then(regions => {
     const centroidLat = region.polygon.reduce((sum, c) => sum + c[0], 0) / region.polygon.length;
     const centroidLng = region.polygon.reduce((sum, c) => sum + c[1], 0) / region.polygon.length;
 
-    // Add region label
+    // Add region label (transparent)
     L.marker([centroidLat, centroidLng], {
       icon: L.divIcon({
         className: "region-label",
-        html: `<b>${region.name}</b><br>${(region.percent * 100).toFixed(1)}%`,
+        html: `${region.name}<br>${(region.percent * 100).toFixed(1)}%`,
         iconSize: [100, 40]
       })
     }).addTo(map);
@@ -182,3 +182,4 @@ legend.addTo(map);
 
 </body>
 </html>
+
