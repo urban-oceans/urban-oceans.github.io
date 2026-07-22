@@ -94,48 +94,69 @@ const slider = document.getElementById("yearSlider");
 const yearDisplay = document.getElementById("yearDisplay");
 const studyDisplay = document.getElementById("studyDisplay");
 
-loadCSV().then(data => {
-  /* --- Slider updates --- */
-  slider.addEventListener("input", () => {
-    const year = slider.value;
-    yearDisplay.textContent = year;
-    studyDisplay.textContent = data.studyData[year] || 0;
-  });
+/* NEW cumulative display */
+const cumulativeDisplay = document.createElement("p");
+cumulativeDisplay.style.fontSize = "1.2rem";
+cumulativeDisplay.style.marginTop = "10px";
+document.querySelector(".container").appendChild(cumulativeDisplay);
 
-  // Initialize slider display
-  yearDisplay.textContent = slider.value;
-  studyDisplay.textContent = data.studyData[slider.value] || 0;
+loadCSV().then(data => {
 
   /* --- Dynamic Bar Chart --- */
   const ctx = document.getElementById("studyChart").getContext("2d");
 
-  new Chart(ctx, {
+  const chart = new Chart(ctx, {
     type: "bar",
     data: {
       labels: data.years,
       datasets: [{
         label: "Number of Studies",
         data: data.counts,
-        backgroundColor: "rgba(42, 92, 123, 0.6)",   // coastal Vancouver blue
-        borderColor: "rgba(42, 92, 123, 1)",
+        backgroundColor: data.years.map(() => "rgba(42, 92, 123, 0.4)"),
+        borderColor: data.years.map(() => "rgba(42, 92, 123, 1)"),
         borderWidth: 1
       }]
     },
     options: {
       responsive: true,
+      animation: false,
       scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { color: "#1f2a30" }
-        },
-        x: {
-          ticks: { color: "#1f2a30" }
-        }
+        y: { beginAtZero: true },
+        x: { ticks: { color: "#1f2a30" } }
       }
     }
   });
+
+  /* --- Update chart + text when slider moves --- */
+  function updateYear(year) {
+    yearDisplay.textContent = year;
+    studyDisplay.textContent = data.studyData[year] || 0;
+
+    /* cumulative total */
+    const index = data.years.indexOf(year);
+    const cumulative = data.counts.slice(0, index + 1).reduce((a, b) => a + b, 0);
+    cumulativeDisplay.textContent = `Cumulative Studies up to ${year}: ${cumulative}`;
+
+    /* update bar colors */
+    chart.data.datasets[0].backgroundColor = data.years.map((y, i) => {
+      return y === year
+        ? "rgba(0, 119, 190, 0.8)"   // bright ocean blue highlight
+        : "rgba(42, 92, 123, 0.4)";  // default muted blue
+    });
+
+    chart.update();
+  }
+
+  /* slider listener */
+  slider.addEventListener("input", () => {
+    updateYear(slider.value);
+  });
+
+  /* initialize */
+  updateYear(slider.value);
 });
 </script>
+
 
 </body>
 </html>
