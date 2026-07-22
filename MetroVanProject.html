@@ -1,193 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Metro Vancouver Urban Oceans Literature Review</title>
 
-    <style>
+  <style>
     body {
       margin: 0;
       font-family: "Inter", Arial, sans-serif;
-      background: linear-gradient(to bottom, #e6f1f5, #d3e4ea, #c0d7e0);
-      color: #1f2a30;
+      background: linear-gradient(to bottom, #e8f6ff, #cfe9f7);
+      color: #1a2a33;
     }
-  
-    /* Header */
+
+    /* Header matches index.html */
     header {
-      background: linear-gradient(135deg, #2a5c7b, #3b7d98);
-      padding: 20px 40px;
+      background: linear-gradient(135deg, #0077be, #0099cc);
+      padding: 22px 45px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-      font-size: 1.4rem;
+      font-size: 1.45rem;
       font-weight: 600;
       color: white;
       letter-spacing: 0.5px;
     }
-  
-    /* Tabs */
-    .tabs {
-      display: flex;
-      justify-content: center;
-      background: rgba(255,255,255,0.75);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid #b7cbd4;
+
+    /* Main content card */
+    .container {
+      max-width: 1100px;
+      margin: 50px auto;
+      background: linear-gradient(180deg, #ffffff, #f2faff);
+      padding: 55px; /* spacious padding */
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid #d6e9f5;
     }
-    .tabs button {
-      padding: 16px 30px;
-      border: none;
-      background: none;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: 0.3s;
-      border-bottom: 3px solid transparent;
-      color: #1f2a30;
+
+    h1 {
+      color: #005f8f;
+      margin-top: 0;
+      margin-bottom: 25px;
     }
-    .tabs button:hover {
-      color: #2a5c7b;
+
+    p {
+      line-height: 1.75;
+      margin-bottom: 25px;
+      color: #1a2a33;
     }
-    .tabs button.active {
-      color: #2a5c7b;
-      border-bottom: 3px solid #2a5c7b;
+
+    a {
+      color: #0077be;
+      text-decoration: none;
+      font-weight: 600;
     }
-  
-    /* Content */
-    .content {
-      padding: 40px;
-      display: none;
-      animation: fadeIn 0.4s ease;
-    }
-    .content.active {
-      display: block;
-    }
-  
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  
-    /* Project Grid */
-    .grid {
+
+    /* 5x2 Grid */
+    .location-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 25px;
+      margin-top: 50px;
     }
-  
-    .card {
-      background: linear-gradient(180deg, #ffffff, #f3f8fa);
-      padding: 20px;
+
+    /* Grid cards */
+    .location-card {
+      background: linear-gradient(180deg, #ffffff, #f2faff);
+      padding: 22px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid #d6e9f5;
+      text-align: center;
       transition: 0.3s;
-      border: 1px solid #c8dbe3;
+      display: block;
+      color: #1a2a33;
     }
-    .card:hover {
+
+    .location-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-      border-color: #9bbac7;
+      border-color: #a8d7ef;
     }
-    .card h3 {
-      margin-top: 0;
-      color: #2a5c7b;
+
+    .location-card img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 12px;
     }
-  
-    a {
-      color: #2a5c7b;
-      text-decoration: none;
+
+    .location-card h3 {
+      color: #005f8f;
+      margin: 10px 0 8px;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Metro Vancouver Urban Oceans Literature Review</h1>
 
-    <p>What is this project about?</p>
-    <p></p>
-    <p>Coastal marine ecosystem has been transformed by rising resource use and large-scale urban development from rapid human population growth. Emerging and recurring challenges rooted in spatial-temporal changes of land-sea connections in urbanized regions need to be critically examined to ensure the long-term co-existence and sustainability of people and wildlife in the coastal interface. </p>
-    <p>A Scoping and a Systematic Review were performed in this study to characterize the current ecological and biological state-of-knowledge of the urban marine environment around the Metro Vancouver region. Published scientific literature on marine ecosystems in a pre-defined area around Vancouver were extracted, spanning the years 1921 to 2025. </p>
-    <p>This literature is being examined through qualitative categorization and thematic coding analysis by study discipline, time, location, and other criteria. In this presentation, we will review the history of research development and understanding of human impacts on the Metro Vancouver marine ecosystem across disciplines, and identify critical knowledge gaps through comparison of Vancouver-based evidence with global reviews of urbanization impacts on the marine environment. </p>
-    <p>Based on identified knowledge gaps, recommendations will be made for priority biological and ecological research areas in urbanized coastal marine ecosystems of Vancouver and beyond.</p>
+<header>Metro Vancouver Urban Oceans Literature Review</header>
 
-    <p><a href="year-of-study.html">View Year of Study Analysis →</a></p>
+<div class="container">
 
+  <h1>Metro Vancouver Urban Oceans Literature Review</h1>
 
-    <div class="location-grid">
-  
-  <!-- Location 1 -->
-  <a class="location-card" href="location1.html">
-    <img src="images/location1.jpg" alt="Location 1">
-    <h3>Location 1</h3>
-    <p>Short description of this site.</p>
-  </a>
+  <p>What is this project about?</p>
 
-  <!-- Location 2 -->
-  <a class="location-card" href="location2.html">
-    <img src="images/location2.jpg" alt="Location 2">
-    <h3>Location 2</h3>
-    <p>Short description of this site.</p>
-  </a>
+  <p>
+    Coastal marine ecosystem has been transformed by rising resource use and large-scale urban development from rapid human population growth. Emerging and recurring challenges rooted in spatial-temporal changes of land-sea connections in urbanized regions need to be critically examined to ensure the long-term co-existence and sustainability of people and wildlife in the coastal interface.
+  </p>
 
-  <!-- Location 3 -->
-  <a class="location-card" href="location3.html">
-    <img src="images/location3.jpg" alt="Location 3">
-    <h3>Location 3</h3>
-    <p>Short description of this site.</p>
-  </a>
+  <p>
+    A Scoping and a Systematic Review were performed in this study to characterize the current ecological and biological state-of-knowledge of the urban marine environment around the Metro Vancouver region. Published scientific literature on marine ecosystems in a pre-defined area around Vancouver were extracted, spanning the years 1921 to 2025.
+  </p>
 
-  <!-- Location 4 -->
-  <a class="location-card" href="location4.html">
-    <img src="images/location4.jpg" alt="Location 4">
-    <h3>Location 4</h3>
-    <p>Short description of this site.</p>
-  </a>
+  <p>
+    This literature is being examined through qualitative categorization and thematic coding analysis by study discipline, time, location, and other criteria. In this presentation, we will review the history of research development and understanding of human impacts on the Metro Vancouver marine ecosystem across disciplines, and identify critical knowledge gaps through comparison of Vancouver-based evidence with global reviews of urbanization impacts on the marine environment.
+  </p>
 
-  <!-- Location 5 -->
-  <a class="location-card" href="location5.html">
-    <img src="images/location5.jpg" alt="Location 5">
-    <h3>Location 5</h3>
-    <p>Short description of this site.</p>
-  </a>
+  <p>
+    Based on identified knowledge gaps, recommendations will be made for priority biological and ecological research areas in urbanized coastal marine ecosystems of Vancouver and beyond.
+  </p>
 
-  <!-- Location 6 -->
-  <a class="location-card" href="location6.html">
-    <img src="images/location6.jpg" alt="Location 6">
-    <h3>Location 6</h3>
-    <p>Short description of this site.</p>
-  </a>
+  <p style="margin-top:40px;">
+    <a href="year-of-study.html">View Year of Study Analysis →</a>
+  </p>
 
-  <!-- Location 7 -->
-  <a class="location-card" href="location7.html">
-    <img src="images/location7.jpg" alt="Location 7">
-    <h3>Location 7</h3>
-    <p>Short description of this site.</p>
-  </a>
+  <!-- 5x2 Grid -->
+  <div class="location-grid">
 
-  <!-- Location 8 -->
-  <a class="location-card" href="location8.html">
-    <img src="images/location8.jpg" alt="Location 8">
-    <h3>Location 8</h3>
-    <p>Short description of this site.</p>
-  </a>
+    <a class="location-card" href="location1.html">
+      <img src="images/location1.jpg" alt="Location 1">
+      <h3>Location 1</h3>
+      <p>Short description of this site.</p>
+    </a>
 
-  <!-- Location 9 -->
-  <a class="location-card" href="location9.html">
-    <img src="images/location9.jpg" alt="Location 9">
-    <h3>Location 9</h3>
-    <p>Short description of this site.</p>
-  </a>
+    <a class="location-card" href="location2.html">
+      <img src="images/location2.jpg" alt="Location 2">
+      <h3>Location 2</h3>
+      <p>Short description of this site.</p>
+    </a>
 
-  <!-- Location 10 -->
-  <a class="location-card" href="location10.html">
-    <img src="images/location10.jpg" alt="Location 10">
-    <h3>Location 10</h3>
-    <p>Short description of this site.</p>
-  </a>
+    <a class="location-card" href="location3.html">
+      <img src="images/location3.jpg" alt="Location 3">
+      <h3>Location 3</h3>
+      <p>Short description of this site.</p>
+    </a>
+
+    <a class="location-card" href="location4.html">
+      <img src="images/location4.jpg" alt="Location 4">
+      <h3>Location 4</h3>
+      <p>Short description of this site.</p>
+    </a>
+
+    <a class="location-card" href="location5.html">
+      <img src="images/location5.jpg" alt="Location 5">
+      <h3>Location 5</h3>
+      <p>Short description of this site.</p>
+    </a>
+
+    <a class="location-card" href="location6.html">
+      <img src="images/location6.jpg" alt="Location 6">
+      <h3>Location 6</h3>
+      <p>Short description of this site.</p>
+    </a>
+
+    <a class="location-card" href="location7.html">
+      <img src="images/location7.jpg" alt="Location 7">
+      <h3>Location 7</h3>
+      <p>Short description of this site.</p>
+    </a>
+
+    <a class="location-card" href="location8.html">
+      <img src="images/location8.jpg" alt="Location 8">
+      <h3>Location 8</h3>
+      <p>Short description of this site.</p>
+    </a>
+
+    <a class="location-card" href="location9.html">
+      <img src="images/location9.jpg" alt="Location 9">
+      <h3>Location 9</h3>
+      <p>Short description of this site.</p>
+    </a>
+
+    <a class="location-card" href="location10.html">
+      <img src="images/location10.jpg" alt="Location 10">
+      <h3>Location 10</h3>
+      <p>Short description of this site.</p>
+    </a>
+
+  </div>
 
 </div>
 
-    
-    <p><a href="index.html">← Back to main page</a></p>
-  </div>
 </body>
 </html>
+
