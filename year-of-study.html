@@ -60,14 +60,11 @@
 </div>
 
 <script>
-/* ---------------------------
-   LOAD CSV FILE
----------------------------- */
 async function loadCSV() {
   const response = await fetch("Year of study.csv");
   const text = await response.text();
 
-  const rows = text.split("\n").slice(1); // skip header
+  const rows = text.split("\n").slice(1);
 
   const years = [];
   const counts = [];
@@ -87,22 +84,18 @@ async function loadCSV() {
   return { years, counts, studyData };
 }
 
-/* ---------------------------
-   SLIDER + CHART INITIALIZATION
----------------------------- */
 const slider = document.getElementById("yearSlider");
 const yearDisplay = document.getElementById("yearDisplay");
 const studyDisplay = document.getElementById("studyDisplay");
 
-/* NEW cumulative display */
+/* Move cumulative text directly under slider */
 const cumulativeDisplay = document.createElement("p");
 cumulativeDisplay.style.fontSize = "1.2rem";
 cumulativeDisplay.style.marginTop = "10px";
-document.querySelector(".container").appendChild(cumulativeDisplay);
+slider.insertAdjacentElement("afterend", cumulativeDisplay);
 
 loadCSV().then(data => {
 
-  /* --- Dynamic Bar Chart --- */
   const ctx = document.getElementById("studyChart").getContext("2d");
 
   const chart = new Chart(ctx, {
@@ -127,35 +120,42 @@ loadCSV().then(data => {
     }
   });
 
-  /* --- Update chart + text when slider moves --- */
   function updateYear(year) {
     yearDisplay.textContent = year;
     studyDisplay.textContent = data.studyData[year] || 0;
 
-    /* cumulative total */
-    const index = data.years.indexOf(year);
-    const cumulative = data.counts.slice(0, index + 1).reduce((a, b) => a + b, 0);
+    /* Correct cumulative logic */
+    const cumulative = data.years
+      .filter(y => Number(y) <= Number(year))
+      .map(y => data.studyData[y])
+      .reduce((a, b) => a + b, 0);
+
     cumulativeDisplay.textContent = `Cumulative Studies up to ${year}: ${cumulative}`;
 
-    /* update bar colors */
-    chart.data.datasets[0].backgroundColor = data.years.map((y, i) => {
-      return y === year
-        ? "rgba(0, 119, 190, 0.8)"   // bright ocean blue highlight
-        : "rgba(42, 92, 123, 0.4)";  // default muted blue
+    /* Color logic:
+       - Past years: orange
+       - Current year: yellow
+       - Future years: muted blue
+    */
+    chart.data.datasets[0].backgroundColor = data.years.map(y => {
+      if (Number(y) < Number(year)) {
+        return "rgba(255, 140, 0, 0.8)";   // orange
+      }
+      if (Number(y) === Number(year)) {
+        return "rgba(255, 215, 0, 0.9)";   // yellow
+      }
+      return "rgba(42, 92, 123, 0.4)";     // muted blue
     });
 
     chart.update();
   }
 
-  /* slider listener */
-  slider.addEventListener("input", () => {
-    updateYear(slider.value);
-  });
+  slider.addEventListener("input", () => updateYear(slider.value));
 
-  /* initialize */
   updateYear(slider.value);
 });
 </script>
+
 
 
 </body>
