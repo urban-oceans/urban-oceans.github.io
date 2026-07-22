@@ -2,53 +2,47 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Research Map</title>
+  <title>Leaflet Polygon Example</title>
 
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
     #map {
-      height: 500px;
+      height: 550px;
+      width: 100%;
       margin-top: 20px;
+      border-radius: 10px;
     }
   </style>
 </head>
 
 <body>
 
-<h1>Research Articles Map</h1>
-<p>Explore articles by location, topic, and year.</p>
+<h2>Metro Vancouver Research Regions (Polygon Map)</h2>
+<p>This map shows research areas using polygons instead of single points.</p>
 
 <div id="map"></div>
 
 <script>
 // Initialize map
-const map = L.map('map').setView([49.2827, -123.1207], 11);
+const map = L.map('map').setView([49.25, -123.1], 10);
 
 // Basemap
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19
 }).addTo(map);
 
-// Load your GeoJSON
-fetch("articles.geojson")
-  .then(res => res.json())
-  .then(data => {
-    L.geoJSON(data, {
-      onEachFeature: (feature, layer) => {
-        layer.bindPopup(`
-          <b>${feature.properties.title}</b><br>
-          Topic: ${feature.properties.topic}<br>
-          Location: ${feature.properties.location}<br>
-          Year: ${feature.properties.year}
-        `);
-      }
-    }).addTo(map);
-  });
+/* ---------------------------
+   Example Polygons
+   Replace these with your real region shapes
+----------------------------*/
 
-// Example polygon (rough shape)
-const boundaryBayPolygon = [
+// Boundary Bay polygon (example)
+const boundaryBay = [
   [49.045, -123.045],
   [49.060, -123.030],
   [49.065, -123.000],
@@ -56,11 +50,47 @@ const boundaryBayPolygon = [
   [49.040, -123.010]
 ];
 
-L.polygon(boundaryBayPolygon, {
-  color: "#0077be",
-  fillColor: "#66c2ff",
-  fillOpacity: 0.5
-}).addTo(map).bindPopup("Boundary Bay");
+// Burrard Inlet polygon (example)
+const burrardInlet = [
+  [49.300, -123.100],
+  [49.305, -123.080],
+  [49.310, -123.060],
+  [49.295, -123.050],
+  [49.285, -123.070]
+];
+
+// Fraser River Estuary polygon (example)
+const fraserEstuary = [
+  [49.150, -123.000],
+  [49.160, -122.980],
+  [49.170, -122.960],
+  [49.155, -122.940],
+  [49.140, -122.960]
+];
+
+/* ---------------------------
+   Add polygons to map
+----------------------------*/
+
+function addRegion(coords, name, studies) {
+  L.polygon(coords, {
+    color: "#005f8f",
+    fillColor: "#66c2ff",
+    fillOpacity: 0.45,
+    weight: 2
+  })
+  .addTo(map)
+  .bindPopup(`
+    <b>${name}</b><br>
+    Studies: ${studies}<br>
+    Region Type: Polygon
+  `);
+}
+
+addRegion(boundaryBay, "Boundary Bay", 12);
+addRegion(burrardInlet, "Burrard Inlet", 30);
+addRegion(fraserEstuary, "Fraser River Estuary", 18);
+
 </script>
 
 </body>
