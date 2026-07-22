@@ -36,11 +36,39 @@
       text-decoration: none;
     }
 
+    /* Typed inputs */
+    .year-inputs {
+      margin-bottom: 20px;
+    }
+
+    .year-inputs input {
+      width: 120px;
+      margin-left: 10px;
+    }
+
     /* Unified dual-handle slider */
     .range-container {
-      margin-top: 30px;
+      margin-top: 20px;
       position: relative;
       width: 100%;
+      padding-top: 70px; /* More space so text sits above slider */
+    }
+
+    .range-values {
+      position: absolute;
+      top: 25px;   /* Moves text downward */
+      left: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #2a5c7b;
+    }
+
+    .slider-track {
+      height: 6px;
+      background: #c0d7e0;
+      border-radius: 3px;
+      position: relative;
+      margin-top: 20px;
     }
 
     .range-input {
@@ -49,7 +77,7 @@
       pointer-events: none;
       -webkit-appearance: none;
       background: none;
-      margin-top: 20px;
+      margin-top: 20px; /* Ensures handles sit on the track */
     }
 
     .range-input::-webkit-slider-thumb {
@@ -60,30 +88,6 @@
       border-radius: 50%;
       cursor: pointer;
       -webkit-appearance: none;
-    }
-
-    .slider-track {
-      height: 6px;
-      background: #c0d7e0;
-      border-radius: 3px;
-      margin-top: 20px;
-      position: relative;
-    }
-
-    .range-values {
-      margin-bottom: 10px;
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #2a5c7b;
-    }
-
-    .year-inputs {
-      margin-bottom: 15px;
-    }
-
-    .year-inputs input {
-      width: 120px;
-      margin-left: 10px;
     }
   </style>
 </head>
