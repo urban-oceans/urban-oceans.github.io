@@ -17,6 +17,36 @@
       margin-top: 20px;
       border-radius: 10px;
     }
+
+    /* Region label styling */
+    .region-label {
+      background: rgba(255,255,255,0.85);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      text-align: center;
+      color: #003f5c;
+      border: 1px solid #c0d7e0;
+    }
+
+    /* Legend styling */
+    .info.legend {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      line-height: 18px;
+      color: #333;
+      border: 1px solid #ccc;
+      font-size: 13px;
+    }
+
+    .info.legend i {
+      width: 20px;
+      height: 12px;
+      float: left;
+      margin-right: 8px;
+      opacity: 0.8;
+    }
   </style>
 </head>
 
@@ -47,7 +77,7 @@ async function loadCSV() {
   const regions = [];
 
   rows.forEach(row => {
-    // CSV is: "POLYGON ((...))",Name,Percent
+    // Extract WKT polygon inside quotes
     const firstQuote = row.indexOf('"');
     const secondQuote = row.indexOf('"', firstQuote + 1);
 
@@ -93,6 +123,8 @@ function getColor(p) {
 
 loadCSV().then(regions => {
   regions.forEach(region => {
+
+    // Draw polygon
     L.polygon(region.polygon, {
       color: "#005f8f",
       fillColor: getColor(region.percent),
@@ -104,11 +136,49 @@ loadCSV().then(regions => {
       <b>${region.name}</b><br>
       Percent of studies: ${(region.percent * 100).toFixed(2)}%
     `);
+
+    // Compute centroid for label
+    const centroidLat = region.polygon.reduce((sum, c) => sum + c[0], 0) / region.polygon.length;
+    const centroidLng = region.polygon.reduce((sum, c) => sum + c[1], 0) / region.polygon.length;
+
+    // Add region label
+    L.marker([centroidLat, centroidLng], {
+      icon: L.divIcon({
+        className: "region-label",
+        html: `<b>${region.name}</b><br>${(region.percent * 100).toFixed(1)}%`,
+        iconSize: [100, 40]
+      })
+    }).addTo(map);
   });
 });
+
+/* -----------------------------------------------------
+   LEGEND
+----------------------------------------------------- */
+
+const legend = L.control({ position: "bottomright" });
+
+legend.onAdd = function () {
+  const div = L.DomUtil.create("div", "info legend");
+  const grades = [0, 0.10, 0.20, 0.35, 0.40];
+
+  div.innerHTML += "<h4>Percent of Studies</h4>";
+
+  for (let i = 0; i < grades.length; i++) {
+    const from = grades[i];
+    const to = grades[i + 1];
+
+    div.innerHTML +=
+      `<i style="background:${getColor(from + 0.001)}"></i> ` +
+      `${(from * 100).toFixed(0)}%` +
+      (to ? `–${(to * 100).toFixed(0)}%<br>` : "+%");
+  }
+
+  return div;
+};
+
+legend.addTo(map);
 </script>
-
-
 
 </body>
 </html>
