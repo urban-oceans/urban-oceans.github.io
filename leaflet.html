@@ -35,7 +35,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 /* -----------------------------------------------------
-   LOAD CSV FILE (robust parser)
+   LOAD CSV FILE (WKT POLYGON PARSER)
 ----------------------------------------------------- */
 
 async function loadCSV() {
@@ -47,27 +47,27 @@ async function loadCSV() {
   const regions = [];
 
   rows.forEach(row => {
-    const parts = row.split(",");
+    // CSV is: "POLYGON ((...))",Name,Percent
+    const firstQuote = row.indexOf('"');
+    const secondQuote = row.indexOf('"', firstQuote + 1);
 
-    // Last two columns are ALWAYS: name, percent
-    const name = parts[parts.length - 2].trim();
-    const percent = Number(parts[parts.length - 1].trim());
+    const wkt = row.slice(firstQuote + 1, secondQuote); // POLYGON ((...))
+    const rest = row.slice(secondQuote + 2).split(",");
 
-    // Everything before that is polygon coordinates
-    const polygonParts = parts.slice(0, parts.length - 2);
+    const name = rest[0].trim();
+    const percent = Number(rest[1].trim());
 
-    // Join polygon chunks back together
-    const polygonStr = polygonParts.join(",");
+    // Remove POLYGON (( and ))
+    const inner = wkt
+      .replace("POLYGON ((", "")
+      .replace("))", "")
+      .trim();
 
-    // Parse "(lat lng)" pairs
-    const coords = polygonStr
-      .split(")")
-      .filter(s => s.trim() !== "")
-      .map(s => {
-        const cleaned = s.replace("(", "").trim();
-        const [lat, lng] = cleaned.split(" ").map(Number);
-        return [lat, lng];
-      });
+    // Split into coordinate pairs
+    const coords = inner.split(",").map(pair => {
+      const [lng, lat] = pair.trim().split(" ").map(Number);
+      return [lat, lng]; // Leaflet uses [lat, lng]
+    });
 
     regions.push({ name, percent, polygon: coords });
   });
@@ -107,6 +107,7 @@ loadCSV().then(regions => {
   });
 });
 </script>
+
 
 
 </body>
