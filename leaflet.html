@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Leaflet Polygon Example</title>
+  <title>Leaflet Polygon Percent Map</title>
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -22,8 +22,8 @@
 
 <body>
 
-<h2>Metro Vancouver Research Regions (Polygon Map)</h2>
-<p>This map shows research areas using polygons instead of single points.</p>
+<h2>Percent Distribution of Studies by Region</h2>
+<p>This map shows the percent of all studies conducted in each region.</p>
 
 <div id="map"></div>
 
@@ -36,60 +36,112 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19
 }).addTo(map);
 
-/* ---------------------------
-   Example Polygons
-   Replace these with your real region shapes
-----------------------------*/
+/* -----------------------------------------------------
+   YOUR CSV VALUES (converted into JS object)
+----------------------------------------------------- */
 
-// Boundary Bay polygon (example)
-const boundaryBay = [
-  [49.045, -123.045],
-  [49.060, -123.030],
-  [49.065, -123.000],
-  [49.050, -122.990],
-  [49.040, -123.010]
-];
+const regionPercent = {
+  "Boundary Bay": 0.114606742,
+  "Burrard Inlet": 0.269662921,
+  "False Creek": 0.015730337,
+  "Fraser River Estuary": 0.471910112,
+  "Howe Sound": 0.123595506,
+  "Salish Sea": 0.053932584,
+  "Strait of Georgia": 0.294382022
+};
 
-// Burrard Inlet polygon (example)
-const burrardInlet = [
-  [49.300, -123.100],
-  [49.305, -123.080],
-  [49.310, -123.060],
-  [49.295, -123.050],
-  [49.285, -123.070]
-];
+/* -----------------------------------------------------
+   EXAMPLE POLYGONS (replace with real shapes later)
+----------------------------------------------------- */
 
-// Fraser River Estuary polygon (example)
-const fraserEstuary = [
-  [49.150, -123.000],
-  [49.160, -122.980],
-  [49.170, -122.960],
-  [49.155, -122.940],
-  [49.140, -122.960]
-];
+const polygons = {
+  "Boundary Bay": [
+    [49.045, -123.045],
+    [49.060, -123.030],
+    [49.065, -123.000],
+    [49.050, -122.990],
+    [49.040, -123.010]
+  ],
 
-/* ---------------------------
-   Add polygons to map
-----------------------------*/
+  "Burrard Inlet": [
+    [49.300, -123.100],
+    [49.305, -123.080],
+    [49.310, -123.060],
+    [49.295, -123.050],
+    [49.285, -123.070]
+  ],
 
-function addRegion(coords, name, studies) {
-  L.polygon(coords, {
+  "False Creek": [
+    [49.270, -123.140],
+    [49.275, -123.130],
+    [49.265, -123.120],
+    [49.260, -123.130]
+  ],
+
+  "Fraser River Estuary": [
+    [49.150, -123.000],
+    [49.160, -122.980],
+    [49.170, -122.960],
+    [49.155, -122.940],
+    [49.140, -122.960]
+  ],
+
+  "Howe Sound": [
+    [49.600, -123.300],
+    [49.620, -123.250],
+    [49.630, -123.200],
+    [49.610, -123.180],
+    [49.590, -123.220]
+  ],
+
+  "Salish Sea": [
+    [49.400, -123.400],
+    [49.450, -123.350],
+    [49.480, -123.300],
+    [49.430, -123.250],
+    [49.390, -123.300]
+  ],
+
+  "Strait of Georgia": [
+    [49.300, -123.300],
+    [49.350, -123.250],
+    [49.380, -123.200],
+    [49.330, -123.150],
+    [49.290, -123.200]
+  ]
+};
+
+/* -----------------------------------------------------
+   COLOR SCALE BASED ON PERCENT DISTRIBUTION
+----------------------------------------------------- */
+
+function getColor(p) {
+  return p > 0.40 ? "#ff6600" :      // very high
+         p > 0.25 ? "#ffa64d" :      // high
+         p > 0.10 ? "#ffd9b3" :      // medium
+         p > 0.05 ? "#e6f2ff" :      // low
+                     "#f7fbff";      // very low
+}
+
+/* -----------------------------------------------------
+   ADD POLYGONS TO MAP
+----------------------------------------------------- */
+
+Object.keys(polygons).forEach(region => {
+  const percent = regionPercent[region];
+
+  L.polygon(polygons[region], {
     color: "#005f8f",
-    fillColor: "#66c2ff",
-    fillOpacity: 0.45,
+    fillColor: getColor(percent),
+    fillOpacity: 0.6,
     weight: 2
   })
   .addTo(map)
   .bindPopup(`
-    <b>${name}</b><br>
-    Studies: ${studies}<br>
-    Region Type: Polygon
+    <b>${region}</b><br>
+    Percent of studies: ${(percent * 100).toFixed(2)}%
   `);
-}
-
-addRegion(boundaryBay, "Boundary Bay", 12);
-addRegion(burrardInlet, "Burrard Inlet", 30);
-addRegion(fraserEstuary, "Fraser River Estuary", 18);
+});
 
 </script>
 
