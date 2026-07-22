@@ -85,10 +85,11 @@ async function loadCSV() {
 }
 
 const slider = document.getElementById("yearSlider");
+const yearInput = document.getElementById("yearInput");
 const yearDisplay = document.getElementById("yearDisplay");
 const studyDisplay = document.getElementById("studyDisplay");
 
-/* Move cumulative text directly under slider */
+/* cumulative text under slider */
 const cumulativeDisplay = document.createElement("p");
 cumulativeDisplay.style.fontSize = "1.2rem";
 cumulativeDisplay.style.marginTop = "10px";
@@ -124,7 +125,7 @@ loadCSV().then(data => {
     yearDisplay.textContent = year;
     studyDisplay.textContent = data.studyData[year] || 0;
 
-    /* Correct cumulative logic */
+    /* cumulative total */
     const cumulative = data.years
       .filter(y => Number(y) <= Number(year))
       .map(y => data.studyData[y])
@@ -132,29 +133,38 @@ loadCSV().then(data => {
 
     cumulativeDisplay.textContent = `Cumulative Studies up to ${year}: ${cumulative}`;
 
-    /* Color logic:
-       - Past years: orange
-       - Current year: yellow
-       - Future years: muted blue
-    */
+    /* color logic */
     chart.data.datasets[0].backgroundColor = data.years.map(y => {
-      if (Number(y) < Number(year)) {
-        return "rgba(255, 140, 0, 0.8)";   // orange
-      }
-      if (Number(y) === Number(year)) {
-        return "rgba(255, 215, 0, 0.9)";   // yellow
-      }
-      return "rgba(42, 92, 123, 0.4)";     // muted blue
+      if (Number(y) < Number(year)) return "rgba(255, 140, 0, 0.8)";   // orange
+      if (Number(y) === Number(year)) return "rgba(255, 215, 0, 0.9)"; // yellow
+      return "rgba(42, 92, 123, 0.4)";                                // muted blue
     });
 
     chart.update();
   }
 
-  slider.addEventListener("input", () => updateYear(slider.value));
+  /* slider → input */
+  slider.addEventListener("input", () => {
+    yearInput.value = slider.value;
+    updateYear(slider.value);
+  });
 
+  /* input → slider */
+  yearInput.addEventListener("input", () => {
+    let year = Number(yearInput.value);
+
+    if (year < 1900) year = 1900;
+    if (year > 2024) year = 2024;
+
+    slider.value = year;
+    updateYear(year);
+  });
+
+  /* initialize */
   updateYear(slider.value);
 });
 </script>
+
 
 
 
