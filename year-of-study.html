@@ -35,6 +35,47 @@
       color: #2a5c7b;
       text-decoration: none;
     }
+
+    /* Unified dual-handle slider */
+    .range-container {
+      margin-top: 30px;
+      position: relative;
+      width: 100%;
+    }
+
+    .range-input {
+      position: absolute;
+      width: 100%;
+      pointer-events: none;
+      -webkit-appearance: none;
+      background: none;
+      margin-top: 20px;
+    }
+
+    .range-input::-webkit-slider-thumb {
+      pointer-events: all;
+      width: 18px;
+      height: 18px;
+      background: #0077be;
+      border-radius: 50%;
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+
+    .slider-track {
+      height: 6px;
+      background: #c0d7e0;
+      border-radius: 3px;
+      margin-top: 20px;
+      position: relative;
+    }
+
+    .range-values {
+      margin-top: 10px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #2a5c7b;
+    }
   </style>
 </head>
 
@@ -42,26 +83,27 @@
 
 <div class="container">
   <h1>Year of Study</h1>
-  <p>This page shows the number of studies conducted each year based on the dataset.</p>
 
-  <!-- Range Selection -->
-  <div style="margin-bottom:20px;">
-    <label style="font-weight:600;">Start Year:</label>
-    <input type="number" id="startYearInput" min="1900" max="2024" value="1900"
-           style="width:120px; margin-left:10px;">
-  
-    <label style="font-weight:600; margin-left:30px;">End Year:</label>
-    <input type="number" id="endYearInput" min="1900" max="2024" value="1931"
-           style="width:120px; margin-left:10px;">
+  <p>What are the number of studies conducted?</p>
+  <p>Hover on the bar to see the number of studies each year.</p>
+  <p>Select the range of years for sum of studies over a given time period.</p>
+
+  <!-- Unified Dual-Handle Range Slider -->
+  <div class="range-container">
+    <label style="font-weight:600;">Select Year Range:</label>
+
+    <div class="slider-track"></div>
+
+    <input type="range" id="startYear" min="1900" max="2024" value="1900" class="range-input">
+    <input type="range" id="endYear" min="1900" max="2024" value="1931" class="range-input">
+
+    <div class="range-values">
+      <span id="startYearLabel">1900</span> – 
+      <span id="endYearLabel">1931</span>
+    </div>
+
+    <p id="cumulativeDisplay" style="font-size:1.2rem; margin-top:15px;"></p>
   </div>
-  
-  <!-- Range Sliders -->
-  <input type="range" id="startYearSlider" min="1900" max="2024" step="1" value="1900" style="width:100%; margin-bottom:10px;">
-  <input type="range" id="endYearSlider" min="1900" max="2024" step="1" value="1931" style="width:100%;">
-  
-  <!-- Cumulative text -->
-  <p id="cumulativeDisplay" style="font-size:1.2rem; margin-top:20px;"></p>
-
 
   <!-- Dynamic Bar Chart -->
   <canvas id="studyChart" width="400" height="200"></canvas>
@@ -94,11 +136,12 @@ async function loadCSV() {
   return { years, counts, studyData };
 }
 
-const startInput = document.getElementById("startYearInput");
-const endInput = document.getElementById("endYearInput");
-const startSlider = document.getElementById("startYearSlider");
-const endSlider = document.getElementById("endYearSlider");
+const startSlider = document.getElementById("startYear");
+const endSlider = document.getElementById("endYear");
+const startLabel = document.getElementById("startYearLabel");
+const endLabel = document.getElementById("endYearLabel");
 const cumulativeDisplay = document.getElementById("cumulativeDisplay");
+const sliderTrack = document.querySelector(".slider-track");
 
 loadCSV().then(data => {
 
@@ -126,61 +169,60 @@ loadCSV().then(data => {
     }
   });
 
-  function updateRange(startYear, endYear) {
-    /* Fix reversed ranges */
-    if (Number(startYear) > Number(endYear)) {
-      endYear = startYear;
-      endInput.value = endYear;
+  function updateRange() {
+    let startYear = Number(startSlider.value);
+    let endYear = Number(endSlider.value);
+
+    if (startYear > endYear) {
+      [startYear, endYear] = [endYear, startYear];
+      startSlider.value = startYear;
       endSlider.value = endYear;
     }
 
-    /* cumulative = all studies up to endYear */
+    startLabel.textContent = startYear;
+    endLabel.textContent = endYear;
+
+    /* cumulative total */
     const cumulative = data.years
-      .filter(y => Number(y) <= Number(endYear))
+      .filter(y => Number(y) <= endYear)
       .map(y => data.studyData[y])
       .reduce((a, b) => a + b, 0);
 
     cumulativeDisplay.textContent =
       `Cumulative Studies up to ${endYear}: ${cumulative}`;
 
-    /* Color logic */
+    /* color logic */
     chart.data.datasets[0].backgroundColor = data.years.map(y => {
-      if (Number(y) < Number(startYear)) return "rgba(255, 140, 0, 0.8)";   // orange (past)
-      if (Number(y) >= Number(startYear) && Number(y) <= Number(endYear))
-        return "rgba(255, 215, 0, 0.9)";                                   // yellow (range)
-      return "rgba(42, 92, 123, 0.4)";                                     // blue (future)
+      if (Number(y) < startYear) return "rgba(255, 140, 0, 0.8)";   // orange
+      if (Number(y) >= startYear && Number(y) <= endYear)
+        return "rgba(255, 215, 0, 0.9)";                           // yellow
+      return "rgba(42, 92, 123, 0.4)";                             // blue
     });
 
     chart.update();
+
+    /* update track highlight */
+    const min = Number(startSlider.min);
+    const max = Number(startSlider.max);
+
+    const startPercent = ((startYear - min) / (max - min)) * 100;
+    const endPercent = ((endYear - min) / (max - min)) * 100;
+
+    sliderTrack.style.background =
+      `linear-gradient(to right,
+        #c0d7e0 ${startPercent}%,
+        #ffd700 ${startPercent}%,
+        #ffd700 ${endPercent}%,
+        #c0d7e0 ${endPercent}%)`;
   }
 
-  /* Sync sliders → inputs */
-  startSlider.addEventListener("input", () => {
-    startInput.value = startSlider.value;
-    updateRange(startSlider.value, endSlider.value);
-  });
+  startSlider.addEventListener("input", updateRange);
+  endSlider.addEventListener("input", updateRange);
 
-  endSlider.addEventListener("input", () => {
-    endInput.value = endSlider.value;
-    updateRange(startSlider.value, endSlider.value);
-  });
-
-  /* Sync inputs → sliders */
-  startInput.addEventListener("input", () => {
-    startSlider.value = startInput.value;
-    updateRange(startInput.value, endInput.value);
-  });
-
-  endInput.addEventListener("input", () => {
-    endSlider.value = endInput.value;
-    updateRange(startInput.value, endInput.value);
-  });
-
-  /* initialize */
-  updateRange(startSlider.value, endSlider.value);
+  updateRange();
 });
 </script>
 
-
 </body>
 </html>
+
