@@ -35,7 +35,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 /* -----------------------------------------------------
-   LOAD CSV FILE
+   LOAD CSV FILE (robust parser)
 ----------------------------------------------------- */
 
 async function loadCSV() {
@@ -47,11 +47,20 @@ async function loadCSV() {
   const regions = [];
 
   rows.forEach(row => {
-    const [polygonStr, name, percentStr] = row.split(",");
+    const parts = row.split(",");
 
-    // Parse polygon string "(lat lng)(lat lng)..."
+    // Last two columns are ALWAYS: name, percent
+    const name = parts[parts.length - 2].trim();
+    const percent = Number(parts[parts.length - 1].trim());
+
+    // Everything before that is polygon coordinates
+    const polygonParts = parts.slice(0, parts.length - 2);
+
+    // Join polygon chunks back together
+    const polygonStr = polygonParts.join(",");
+
+    // Parse "(lat lng)" pairs
     const coords = polygonStr
-      .trim()
       .split(")")
       .filter(s => s.trim() !== "")
       .map(s => {
@@ -60,11 +69,7 @@ async function loadCSV() {
         return [lat, lng];
       });
 
-    regions.push({
-      name: name.trim(),
-      percent: Number(percentStr.trim()),
-      polygon: coords
-    });
+    regions.push({ name, percent, polygon: coords });
   });
 
   return regions;
@@ -75,11 +80,11 @@ async function loadCSV() {
 ----------------------------------------------------- */
 
 function getColor(p) {
-  return p > 0.40 ? "#ff6600" :      // very high
-         p > 0.35 ? "#ffa64d" :      // high
-         p > 0.20 ? "#ffd9b3" :      // medium
-         p > 0.10 ? "#e6f2ff" :      // low
-                     "#f7fbff";      // very low
+  return p > 0.40 ? "#ff6600" :
+         p > 0.35 ? "#ffa64d" :
+         p > 0.20 ? "#ffd9b3" :
+         p > 0.10 ? "#e6f2ff" :
+                    "#f7fbff";
 }
 
 /* -----------------------------------------------------
@@ -87,9 +92,7 @@ function getColor(p) {
 ----------------------------------------------------- */
 
 loadCSV().then(regions => {
-
   regions.forEach(region => {
-
     L.polygon(region.polygon, {
       color: "#005f8f",
       fillColor: getColor(region.percent),
@@ -101,11 +104,10 @@ loadCSV().then(regions => {
       <b>${region.name}</b><br>
       Percent of studies: ${(region.percent * 100).toFixed(2)}%
     `);
-
   });
-
 });
 </script>
+
 
 </body>
 </html>
