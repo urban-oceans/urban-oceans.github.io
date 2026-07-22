@@ -3,44 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome</title>
+  <title>My Modern Website</title>
+
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      color: #333;
+      font-family: "Inter", Arial, sans-serif;
+      background: #f0f2f5;
+      color: #222;
+    }
+
+    /* Header */
+    header {
+      background: white;
+      padding: 20px 40px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    /* Tabs */
+    .tabs {
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
-      height: 100vh;
-      text-align: center;
+      background: #ffffff;
+      border-bottom: 1px solid #ddd;
     }
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 0.5rem;
-    }
-    p {
-      font-size: 1.2rem;
-      margin-bottom: 2rem;
-    }
-    a.button {
-      padding: 12px 24px;
-      background: #0078ff;
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
+    .tabs button {
+      padding: 16px 30px;
+      border: none;
+      background: none;
       font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+      border-bottom: 3px solid transparent;
     }
-    a.button:hover {
-      background: #005fcc;
+    .tabs button:hover {
+      color: #0078ff;
+    }
+    .tabs button.active {
+      color: #0078ff;
+      border-bottom: 3px solid #0078ff;
+    }
+
+    /* Content */
+    .content {
+      padding: 40px;
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+    .content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Project Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+    .card h3 {
+      margin-top: 0;
     }
   </style>
 </head>
+
 <body>
-  <h1>Hello</h1>
-  <p>This is my simple landing page hosted on GitHub Pages.</p>
-  <a class="button" href="#">Learn More</a>
+
+<header>My Modern Website</header>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab-button active" onclick="openTab('about')">About</button>
+  <button class="tab-button" onclick="openTab('research')">Research</button>
+  <button class="tab-button" onclick="openTab('contact')">Contact</button>
+</div>
+
+<!-- About -->
+<div id="about" class="content active">
+  <h1>About Me</h1>
+  <p>Write a modern, clean introduction about yourself here.</p>
+</div>
+
+<!-- Research -->
+<div id="research" class="content">
+  <h1>Research Projects</h1>
+  <p>Here are some of the projects I'm working on:</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Project One</h3>
+      <p>Short description of your research project.</p>
+    </div>
+
+    <div class="card">
+      <h3>Project Two</h3>
+      <p>Another project description goes here.</p>
+    </div>
+
+    <div class="card">
+      <h3>Project Three</h3>
+      <p>Explain what makes this project interesting.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Contact -->
+<div id="contact" class="content">
+  <h1>Contact</h1>
+  <p>Email: yourname@example.com</p>
+  <p>LinkedIn, GitHub, etc.</p>
+</div>
+
+<script>
+  function openTab(tabName) {
+    document.querySelectorAll('.content').forEach(section => {
+      section.classList.remove('active');
+    });
+
+    document.querySelectorAll('.tab-button').forEach(btn => {
+      btn.classList.remove('active');
+    });
+
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+
 </body>
 </html>
