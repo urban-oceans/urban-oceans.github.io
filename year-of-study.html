@@ -71,10 +71,19 @@
     }
 
     .range-values {
-      margin-top: 10px;
+      margin-bottom: 10px;
       font-size: 1.2rem;
       font-weight: 600;
       color: #2a5c7b;
+    }
+
+    .year-inputs {
+      margin-bottom: 15px;
+    }
+
+    .year-inputs input {
+      width: 120px;
+      margin-left: 10px;
     }
   </style>
 </head>
@@ -88,21 +97,29 @@
   <p>Hover on the bar to see the number of studies each year.</p>
   <p>Select the range of years for sum of studies over a given time period.</p>
 
+  <!-- Typed Year Inputs -->
+  <div class="year-inputs">
+    <label style="font-weight:600;">Start Year:</label>
+    <input type="number" id="startYearInput" min="1900" max="2024" value="1900">
+
+    <label style="font-weight:600; margin-left:30px;">End Year:</label>
+    <input type="number" id="endYearInput" min="1900" max="2024" value="1931">
+  </div>
+
   <!-- Unified Dual-Handle Range Slider -->
   <div class="range-container">
-    <label style="font-weight:600;">Select Year Range:</label>
-
-    <div class="slider-track"></div>
-
-    <input type="range" id="startYear" min="1900" max="2024" value="1900" class="range-input">
-    <input type="range" id="endYear" min="1900" max="2024" value="1931" class="range-input">
 
     <div class="range-values">
       <span id="startYearLabel">1900</span> – 
       <span id="endYearLabel">1931</span>
     </div>
 
-    <p id="cumulativeDisplay" style="font-size:1.2rem; margin-top:15px;"></p>
+    <div class="slider-track"></div>
+
+    <input type="range" id="startYear" min="1900" max="2024" value="1900" class="range-input">
+    <input type="range" id="endYear" min="1900" max="2024" value="1931" class="range-input">
+
+    <p id="rangeCountDisplay" style="font-size:1.2rem; margin-top:15px;"></p>
   </div>
 
   <!-- Dynamic Bar Chart -->
@@ -138,9 +155,11 @@ async function loadCSV() {
 
 const startSlider = document.getElementById("startYear");
 const endSlider = document.getElementById("endYear");
+const startInput = document.getElementById("startYearInput");
+const endInput = document.getElementById("endYearInput");
 const startLabel = document.getElementById("startYearLabel");
 const endLabel = document.getElementById("endYearLabel");
-const cumulativeDisplay = document.getElementById("cumulativeDisplay");
+const rangeCountDisplay = document.getElementById("rangeCountDisplay");
 const sliderTrack = document.querySelector(".slider-track");
 
 loadCSV().then(data => {
@@ -177,26 +196,27 @@ loadCSV().then(data => {
       [startYear, endYear] = [endYear, startYear];
       startSlider.value = startYear;
       endSlider.value = endYear;
+      startInput.value = startYear;
+      endInput.value = endYear;
     }
 
     startLabel.textContent = startYear;
     endLabel.textContent = endYear;
 
-    /* cumulative total */
-    const cumulative = data.years
-      .filter(y => Number(y) <= endYear)
+    /* Count studies within range */
+    const rangeCount = data.years
+      .filter(y => Number(y) >= startYear && Number(y) <= endYear)
       .map(y => data.studyData[y])
       .reduce((a, b) => a + b, 0);
 
-    cumulativeDisplay.textContent =
-      `Cumulative Studies up to ${endYear}: ${cumulative}`;
+    rangeCountDisplay.textContent =
+      `Studies within ${startYear}–${endYear}: ${rangeCount}`;
 
-    /* color logic */
+    /* Color logic */
     chart.data.datasets[0].backgroundColor = data.years.map(y => {
-      if (Number(y) < startYear) return "rgba(255, 140, 0, 0.8)";   // orange
       if (Number(y) >= startYear && Number(y) <= endYear)
-        return "rgba(255, 215, 0, 0.9)";                           // yellow
-      return "rgba(42, 92, 123, 0.4)";                             // blue
+        return "rgba(255, 140, 0, 0.9)";   // orange (inside range)
+      return "rgba(42, 92, 123, 0.4)";     // blue (outside range)
     });
 
     chart.update();
@@ -211,13 +231,32 @@ loadCSV().then(data => {
     sliderTrack.style.background =
       `linear-gradient(to right,
         #c0d7e0 ${startPercent}%,
-        #ffd700 ${startPercent}%,
-        #ffd700 ${endPercent}%,
+        #ff8c00 ${startPercent}%,
+        #ff8c00 ${endPercent}%,
         #c0d7e0 ${endPercent}%)`;
   }
 
-  startSlider.addEventListener("input", updateRange);
-  endSlider.addEventListener("input", updateRange);
+  /* slider → input */
+  startSlider.addEventListener("input", () => {
+    startInput.value = startSlider.value;
+    updateRange();
+  });
+
+  endSlider.addEventListener("input", () => {
+    endInput.value = endSlider.value;
+    updateRange();
+  });
+
+  /* input → slider */
+  startInput.addEventListener("input", () => {
+    startSlider.value = startInput.value;
+    updateRange();
+  });
+
+  endInput.addEventListener("input", () => {
+    endSlider.value = endInput.value;
+    updateRange();
+  });
 
   updateRange();
 });
@@ -225,4 +264,3 @@ loadCSV().then(data => {
 
 </body>
 </html>
-
