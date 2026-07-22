@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Year of Study</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Inter", Arial, sans-serif;
+      background: linear-gradient(to bottom, #e6f1f5, #d3e4ea, #c0d7e0);
+      color: #1f2a30;
+      padding: 40px;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #2a5c7b;
+      margin-top: 0;
+    }
+
+    a {
+      color: #2a5c7b;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>Year of Study</h1>
+  <p>This page shows the number of studies conducted each year based on your dataset.</p>
+
+  <label for="yearSlider" style="font-weight:600;">Select Year:</label>
+  <input type="range" id="yearSlider" min="1931" max="2024" step="1" value="1931" style="width:100%;">
+
+  <p style="font-size:1.2rem; margin-top:20px;">
+    Year: <span id="yearDisplay">1931</span><br>
+    Studies: <span id="studyDisplay">0</span>
+  </p>
+
+  <p><a href="index.html">← Back to main page</a></p>
+</div>
+
+<script>
+async function loadCSV() {
+  const response = await fetch("studies.csv");
+  const text = await response.text();
+
+  const rows = text.split("\n").slice(1); // skip header
+
+  const studyData = {};
+
+  rows.forEach(row => {
+    const [year, studies] = row.split(",");
+    if (year && studies) {
+      studyData[year.trim()] = Number(studies.trim());
+    }
+  });
+
+  return studyData;
+}
+
+const slider = document.getElementById("yearSlider");
+const yearDisplay = document.getElementById("yearDisplay");
+const studyDisplay = document.getElementById("studyDisplay");
+
+loadCSV().then(studyData => {
+  slider.addEventListener("input", () => {
+    const year = slider.value;
+    yearDisplay.textContent = year;
+    studyDisplay.textContent = studyData[year] || 0;
+  });
+
+  // Initialize
+  yearDisplay.textContent = slider.value;
+  studyDisplay.textContent = studyData[slider.value] || 0;
+});
+</script>
+
+</body>
+</html>
