@@ -23,8 +23,6 @@
 <body>
 
 <h2>Percent Distribution of Studies by Region</h2>
-<p>This map uses your <b>Area Polygon.csv</b> file.</p>
-
 <div id="map"></div>
 
 <script>
@@ -41,7 +39,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 ----------------------------------------------------- */
 
 async function loadCSV() {
-  const response = await fetch("Area Polygon.csv");
+  const response = await fetch("Area Polygons.csv");
   const text = await response.text();
 
   const rows = text.trim().split("\n").slice(1); // skip header
@@ -78,9 +76,9 @@ async function loadCSV() {
 
 function getColor(p) {
   return p > 0.40 ? "#ff6600" :      // very high
-         p > 0.25 ? "#ffa64d" :      // high
-         p > 0.10 ? "#ffd9b3" :      // medium
-         p > 0.05 ? "#e6f2ff" :      // low
+         p > 0.35 ? "#ffa64d" :      // high
+         p > 0.20 ? "#ffd9b3" :      // medium
+         p > 0.10 ? "#e6f2ff" :      // low
                      "#f7fbff";      // very low
 }
 
