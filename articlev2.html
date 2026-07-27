@@ -119,31 +119,44 @@ let matchedCsvTitles = [];
 let csvHeaders = [];
 
 function loadCsvTags() {
-    fetch("article_tags.csv")
-      .then(r => r.text())
-      .then(text => {
-        const rows = text.split("\n").map(r => r.split(","));
-        csvHeaders = rows[0].slice(1);
+  fetch("tags.csv")
+    .then(r => r.text())
+    .then(text => {
+      const rows = text.split("\n").map(r => r.split(","));
+      csvHeaders = rows[0].slice(1); // tag names (e.g., A: Abstract, B: Exclude, D: ...)
 
-        rows.slice(1).forEach(row => {
-          const rawTitle = row[0].trim();
-          if (!rawTitle) return;
+      rows.slice(1).forEach(row => {
+        if (row.length < 2) return;
 
-          const titleKey = rawTitle.toLowerCase();
-          const values = row.slice(1).map(v => v.trim());
-          const activeTags = csvHeaders.filter((h, i) => values[i] === "1");
+        // --- Extract and clean title ---
+        let rawTitle = row[0].trim();
 
-          csvLookup[titleKey] = {
-            originalTitle: rawTitle,
-            tags: activeTags
-          };
-        });
+        // Remove leading number and colon (e.g., "1 : ")
+        rawTitle = rawTitle.replace(/^\d+\s*:\s*/, "");
 
-        mergeCsvTagsIntoJson();
-        showCsvMatchReport();
-        updateLibrary();
+        // Replace "~" with ":" for consistency
+        rawTitle = rawTitle.replace(/~/g, ":");
+
+        if (!rawTitle) return;
+
+        const titleKey = rawTitle.toLowerCase();
+
+        // --- Extract tag values ---
+        const values = row.slice(1).map(v => v.trim());
+        const activeTags = csvHeaders.filter((h, i) => values[i] === "1");
+
+        csvLookup[titleKey] = {
+          originalTitle: rawTitle,
+          tags: activeTags
+        };
       });
+
+      mergeCsvTagsIntoJson();
+      showCsvMatchReport();
+      updateLibrary();
+    });
 }
+
 
 /* ---------------------------
    CSV ADDITION — MERGE TAGS
