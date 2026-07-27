@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -9,60 +11,89 @@
 <style>
 
 *{
-    margin:0;
-    padding:0;
     box-sizing:border-box;
 }
 
 body{
-
-    font-family:Arial,Helvetica,sans-serif;
-    background:#f5f7fa;
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:#f4f7f9;
     color:#333;
-
 }
+
 
 header{
 
-    background:#0B4F6C;
+    background:#064663;
     color:white;
-    padding:40px;
     text-align:center;
+    padding:40px 20px;
 
 }
+
 
 header h1{
 
-    font-size:2.5rem;
-    margin-bottom:10px;
+    margin:0;
+    font-size:42px;
 
 }
 
+
 header p{
 
+    margin-top:10px;
     opacity:.85;
 
 }
 
-#search{
 
-    width:90%;
-    max-width:700px;
-    margin-top:25px;
-    padding:14px;
-    border:none;
-    border-radius:8px;
-    font-size:16px;
+/* Tabs */
+
+#tabs{
+
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:10px;
+    padding:25px;
 
 }
 
-main{
+
+.tab{
+
+    border:none;
+    background:#dbeaf2;
+    color:#064663;
+    padding:10px 18px;
+    border-radius:25px;
+    cursor:pointer;
+    font-size:15px;
+
+}
+
+
+.tab:hover,
+.tab.active{
+
+    background:#064663;
+    color:white;
+
+}
+
+
+
+/* Publications */
+
+#library{
 
     max-width:1100px;
     margin:auto;
-    padding:40px 20px;
+    padding:20px;
 
 }
+
 
 .card{
 
@@ -70,31 +101,49 @@ main{
     border-radius:12px;
     padding:25px;
     margin-bottom:25px;
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
 
 }
 
-.title{
 
-    color:#0B4F6C;
-    font-size:1.5rem;
-    margin-bottom:10px;
+.type{
 
-}
-
-.meta{
-
-    color:#666;
+    display:inline-block;
+    background:#064663;
+    color:white;
+    padding:5px 12px;
+    border-radius:20px;
+    font-size:13px;
     margin-bottom:15px;
 
 }
 
-.abstract{
 
-    margin-top:15px;
+.title{
+
+    color:#064663;
+    font-size:24px;
+    font-weight:bold;
+    margin-bottom:10px;
+
+}
+
+
+.meta{
+
+    color:#666;
     line-height:1.6;
 
 }
+
+
+.abstract{
+
+    margin-top:18px;
+    line-height:1.7;
+
+}
+
 
 .tags{
 
@@ -102,17 +151,19 @@ main{
 
 }
 
+
 .tag{
 
     display:inline-block;
-    background:#dbeeff;
-    color:#0B4F6C;
-    padding:6px 10px;
-    border-radius:20px;
-    margin:4px;
+    background:#e1f1f7;
+    color:#064663;
+    padding:5px 10px;
+    border-radius:15px;
+    margin:3px;
     font-size:12px;
 
 }
+
 
 .links{
 
@@ -120,17 +171,19 @@ main{
 
 }
 
+
 .links a{
 
-    display:inline-block;
-    text-decoration:none;
-    background:#0B4F6C;
+    background:#064663;
     color:white;
-    padding:10px 14px;
+    text-decoration:none;
+    padding:8px 14px;
     border-radius:6px;
-    margin-right:10px;
+    margin-right:8px;
 
 }
+
+
 
 footer{
 
@@ -140,27 +193,35 @@ footer{
 
 }
 
+
 </style>
 
 </head>
 
+
 <body>
+
 
 <header>
 
 <h1>🌊 Urban Oceans Library</h1>
 
-<p>Research publications exported from Zotero</p>
-
-<input
-type="text"
-id="search"
-placeholder="Search publications..."
->
+<p>Zotero Research Collection</p>
 
 </header>
 
-<main id="library"></main>
+
+
+<div id="tabs"></div>
+
+
+<main id="library">
+
+Loading publications...
+
+</main>
+
+
 
 <footer>
 
@@ -168,150 +229,312 @@ Generated from Zotero JSON
 
 </footer>
 
+
+
+
 <script>
+
 
 let items=[];
 
+
 const library=document.getElementById("library");
 
-const search=document.getElementById("search");
+const tabs=document.getElementById("tabs");
+
+
 
 fetch("Urban Oceans final 2025.json")
 
-.then(r=>r.json())
+
+.then(response=>response.json())
+
 
 .then(data=>{
 
-items=data;
 
-items.sort((a,b)=>{
+    items=data;
 
-const yearA=parseInt(a.date)||0;
-const yearB=parseInt(b.date)||0;
 
-return yearB-yearA;
+    // newest first
 
-});
+    items.sort((a,b)=>{
 
-display(items);
+        let yearA=parseInt(a.date)||0;
+
+        let yearB=parseInt(b.date)||0;
+
+        return yearB-yearA;
+
+    });
+
+
+
+    createTabs();
+
+
+    display(items);
+
 
 })
 
-.catch(err=>{
 
-library.innerHTML="<h2>Could not load JSON file.</h2>";
+.catch(error=>{
 
-console.error(err);
+    library.innerHTML=
+    "<h2>Unable to load Zotero JSON file.</h2>";
 
-});
-
-function display(list){
-
-library.innerHTML="";
-
-list.forEach(item=>{
-
-const authors=(item.creators||[])
-
-.map(a=>`${a.firstName||""} ${a.lastName||""}`.trim())
-
-.join(", ");
-
-const tags=(item.tags||[])
-
-.map(t=>`<span class="tag">${t.tag}</span>`)
-
-.join("");
-
-let links="";
-
-if(item.url){
-
-links+=`<a href="${item.url}" target="_blank">Website</a>`;
-
-}
-
-if(item.DOI){
-
-links+=`<a href="https://doi.org/${item.DOI}" target="_blank">DOI</a>`;
-
-}
-
-const div=document.createElement("div");
-
-div.className="card";
-
-div.innerHTML=`
-
-<div class="title">
-
-${item.title || "Untitled"}
-
-</div>
-
-<div class="meta">
-
-<strong>${item.itemType || ""}</strong>
-
-<br>
-
-${authors}
-
-<br>
-
-${item.publicationTitle || item.publisher || ""}
-
-<br>
-
-${item.date || ""}
-
-</div>
-
-<div class="abstract">
-
-${item.abstractNote || ""}
-
-</div>
-
-<div class="tags">
-
-${tags}
-
-</div>
-
-<div class="links">
-
-${links}
-
-</div>
-
-`;
-
-library.appendChild(div);
+    console.error(error);
 
 });
 
+
+
+
+
+
+function createTabs(){
+
+
+    tabs.innerHTML="";
+
+
+    let counts={};
+
+
+    items.forEach(item=>{
+
+
+        let type=item.itemType || "Other";
+
+
+        counts[type]=(counts[type]||0)+1;
+
+
+    });
+
+
+
+
+    addTab(
+        "All",
+        items.length,
+        items
+    );
+
+
+
+    Object.keys(counts)
+    .sort()
+    .forEach(type=>{
+
+
+        addTab(
+            type,
+            counts[type],
+            items.filter(item=>item.itemType===type)
+        );
+
+
+    });
+
+
+
 }
 
-search.addEventListener("input",()=>{
 
-const value=search.value.toLowerCase();
 
-const filtered=items.filter(item=>
 
-JSON.stringify(item)
+function addTab(name,count,data){
 
-.toLowerCase()
 
-.includes(value)
+    let button=document.createElement("button");
 
-);
 
-display(filtered);
+    button.className="tab";
 
-});
+
+    button.textContent=
+    `${name} (${count})`;
+
+
+
+    button.onclick=function(){
+
+
+        document
+        .querySelectorAll(".tab")
+        .forEach(tab=>tab.classList.remove("active"));
+
+
+
+        button.classList.add("active");
+
+
+        display(data);
+
+
+    };
+
+
+
+    tabs.appendChild(button);
+
+
+
+    if(name==="All"){
+
+        button.classList.add("active");
+
+    }
+
+
+}
+
+
+
+
+
+function display(publications){
+
+
+    library.innerHTML="";
+
+
+
+    publications.forEach(item=>{
+
+
+        let authors=(item.creators||[])
+
+        .map(author=>{
+
+            return `${author.firstName || ""}
+            ${author.lastName || ""}`.trim();
+
+        })
+
+        .join(", ");
+
+
+
+
+        let tags=(item.tags||[])
+
+        .map(tag=>{
+
+            return `<span class="tag">
+            ${tag.tag}
+            </span>`;
+
+        })
+
+        .join("");
+
+
+
+
+        let links="";
+
+
+        if(item.url){
+
+            links+=`
+            <a href="${item.url}" target="_blank">
+            Website
+            </a>`;
+
+        }
+
+
+
+        if(item.DOI){
+
+            links+=`
+            <a href="https://doi.org/${item.DOI}" target="_blank">
+            DOI
+            </a>`;
+
+        }
+
+
+
+
+        let card=document.createElement("div");
+
+
+        card.className="card";
+
+
+
+        card.innerHTML=`
+
+        <div class="type">
+        ${item.itemType || "Other"}
+        </div>
+
+
+        <div class="title">
+        ${item.title || "Untitled"}
+        </div>
+
+
+        <div class="meta">
+
+        ${authors}
+
+        <br>
+
+        ${item.publicationTitle || ""}
+
+        <br>
+
+        ${item.publisher || ""}
+
+        <br>
+
+        ${item.date || ""}
+
+        </div>
+
+
+
+        <div class="abstract">
+
+        ${item.abstractNote || "No abstract available."}
+
+        </div>
+
+
+
+        <div class="tags">
+
+        ${tags}
+
+        </div>
+
+
+
+        <div class="links">
+
+        ${links}
+
+        </div>
+
+
+        `;
+        library.appendChild(card);
+
+    });
+
+
+}
+
+
 
 </script>
 
+
 </body>
+
 </html>
