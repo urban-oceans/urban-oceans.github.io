@@ -1,22 +1,317 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Urban Oceans Publications</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="style.css">
+<title>Urban Oceans Library</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f5f7fa;
+    color:#333;
+
+}
+
+header{
+
+    background:#0B4F6C;
+    color:white;
+    padding:40px;
+    text-align:center;
+
+}
+
+header h1{
+
+    font-size:2.5rem;
+    margin-bottom:10px;
+
+}
+
+header p{
+
+    opacity:.85;
+
+}
+
+#search{
+
+    width:90%;
+    max-width:700px;
+    margin-top:25px;
+    padding:14px;
+    border:none;
+    border-radius:8px;
+    font-size:16px;
+
+}
+
+main{
+
+    max-width:1100px;
+    margin:auto;
+    padding:40px 20px;
+
+}
+
+.card{
+
+    background:white;
+    border-radius:12px;
+    padding:25px;
+    margin-bottom:25px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+
+}
+
+.title{
+
+    color:#0B4F6C;
+    font-size:1.5rem;
+    margin-bottom:10px;
+
+}
+
+.meta{
+
+    color:#666;
+    margin-bottom:15px;
+
+}
+
+.abstract{
+
+    margin-top:15px;
+    line-height:1.6;
+
+}
+
+.tags{
+
+    margin-top:20px;
+
+}
+
+.tag{
+
+    display:inline-block;
+    background:#dbeeff;
+    color:#0B4F6C;
+    padding:6px 10px;
+    border-radius:20px;
+    margin:4px;
+    font-size:12px;
+
+}
+
+.links{
+
+    margin-top:20px;
+
+}
+
+.links a{
+
+    display:inline-block;
+    text-decoration:none;
+    background:#0B4F6C;
+    color:white;
+    padding:10px 14px;
+    border-radius:6px;
+    margin-right:10px;
+
+}
+
+footer{
+
+    text-align:center;
+    padding:40px;
+    color:#777;
+
+}
+
+</style>
+
 </head>
+
 <body>
 
 <header>
-    <h1>Urban Oceans Publications</h1>
-    <input type="text" id="search" placeholder="Search publications...">
+
+<h1>🌊 Urban Oceans Library</h1>
+
+<p>Research publications exported from Zotero</p>
+
+<input
+type="text"
+id="search"
+placeholder="Search publications..."
+>
+
 </header>
 
-<main id="Urban Oceans final 2025"></main>
+<main id="library"></main>
 
-<script src="script.js"></script>
+<footer>
+
+Generated from Zotero JSON
+
+</footer>
+
+<script>
+
+let items=[];
+
+const library=document.getElementById("library");
+
+const search=document.getElementById("search");
+
+fetch("Urban Oceans final 2025.json")
+
+.then(r=>r.json())
+
+.then(data=>{
+
+items=data;
+
+items.sort((a,b)=>{
+
+const yearA=parseInt(a.date)||0;
+const yearB=parseInt(b.date)||0;
+
+return yearB-yearA;
+
+});
+
+display(items);
+
+})
+
+.catch(err=>{
+
+library.innerHTML="<h2>Could not load JSON file.</h2>";
+
+console.error(err);
+
+});
+
+function display(list){
+
+library.innerHTML="";
+
+list.forEach(item=>{
+
+const authors=(item.creators||[])
+
+.map(a=>`${a.firstName||""} ${a.lastName||""}`.trim())
+
+.join(", ");
+
+const tags=(item.tags||[])
+
+.map(t=>`<span class="tag">${t.tag}</span>`)
+
+.join("");
+
+let links="";
+
+if(item.url){
+
+links+=`<a href="${item.url}" target="_blank">Website</a>`;
+
+}
+
+if(item.DOI){
+
+links+=`<a href="https://doi.org/${item.DOI}" target="_blank">DOI</a>`;
+
+}
+
+const div=document.createElement("div");
+
+div.className="card";
+
+div.innerHTML=`
+
+<div class="title">
+
+${item.title || "Untitled"}
+
+</div>
+
+<div class="meta">
+
+<strong>${item.itemType || ""}</strong>
+
+<br>
+
+${authors}
+
+<br>
+
+${item.publicationTitle || item.publisher || ""}
+
+<br>
+
+${item.date || ""}
+
+</div>
+
+<div class="abstract">
+
+${item.abstractNote || ""}
+
+</div>
+
+<div class="tags">
+
+${tags}
+
+</div>
+
+<div class="links">
+
+${links}
+
+</div>
+
+`;
+
+library.appendChild(div);
+
+});
+
+}
+
+search.addEventListener("input",()=>{
+
+const value=search.value.toLowerCase();
+
+const filtered=items.filter(item=>
+
+JSON.stringify(item)
+
+.toLowerCase()
+
+.includes(value)
+
+);
+
+display(filtered);
+
+});
+
+</script>
 
 </body>
 </html>
