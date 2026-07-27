@@ -1,44 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Urban Oceans Library</title>
 
 <style>
-*{box-sizing:border-box}
+
+*{
+box-sizing:border-box;
+}
 
 body{
 margin:0;
 font-family:Arial,Helvetica,sans-serif;
 background:#f4f8f9;
-color:#333
+color:#333;
 }
+
 
 header{
 background:linear-gradient(135deg,#003b4d,#007c91);
 color:white;
 text-align:center;
-padding:40px 20px
+padding:40px 20px;
 }
+
 
 header h1{
 margin:0;
-font-size:40px
+font-size:40px;
 }
+
 
 header p{
 margin-top:10px;
-opacity:.85
+opacity:.85;
 }
+
+
+/* SEARCH */
+
+#search{
+display:flex;
+justify-content:center;
+padding:20px 15px 5px;
+}
+
+
+#searchBox{
+width:80%;
+max-width:750px;
+padding:12px 18px;
+font-size:16px;
+border-radius:25px;
+border:2px solid #007c91;
+outline:none;
+}
+
+
+#searchBox:focus{
+box-shadow:0 0 8px rgba(0,124,145,.4);
+}
+
+
+
+/* YEAR FILTER */
+
+#filters{
+display:flex;
+justify-content:center;
+padding:10px;
+}
+
+
+#yearFilter{
+padding:10px 15px;
+border-radius:20px;
+border:2px solid #007c91;
+font-size:15px;
+background:white;
+}
+
+
+
+/* BUTTONS */
 
 #tabs,#sort{
 display:flex;
 justify-content:center;
 flex-wrap:wrap;
 gap:10px;
-padding:15px
+padding:15px;
 }
+
 
 .tab{
 border:none;
@@ -46,64 +103,84 @@ background:#dceff3;
 color:#003b4d;
 padding:9px 16px;
 border-radius:25px;
-cursor:pointer
+cursor:pointer;
 }
 
-.tab:hover,.tab.active{
+
+.tab:hover,
+.tab.active{
 background:#003b4d;
-color:white
+color:white;
 }
+
+
+
+/* LIBRARY */
 
 #library{
 max-width:1100px;
 margin:auto;
-padding:20px
+padding:20px;
 }
+
 
 .card{
 background:white;
 padding:22px;
 margin-bottom:15px;
 border-radius:12px;
-box-shadow:0 4px 15px rgba(0,0,0,.08)
+box-shadow:0 4px 15px rgba(0,0,0,.08);
 }
+
+
 
 .citation-row{
 display:flex;
-gap:18px
+gap:18px;
 }
+
 
 .number{
 min-width:45px;
 font-weight:bold;
 font-size:18px;
-color:#007c91
+color:#007c91;
 }
 
+
 .citation{
-flex:1
+flex:1;
 }
+
 
 .title{
 font-size:20px;
 font-weight:bold;
 color:#003b4d;
-margin-bottom:8px
+margin-bottom:8px;
 }
 
+
 .authors{
-color:#555
+color:#555;
+line-height:1.5;
 }
+
 
 .journal{
 margin-top:8px;
 font-style:italic;
-color:#666
+color:#666;
 }
 
+
+
+/* LINKS */
+
 .links{
-margin-top:12px
+margin-top:12px;
 }
+
 
 .links a{
 display:inline-block;
@@ -113,12 +190,17 @@ text-decoration:none;
 padding:6px 12px;
 border-radius:5px;
 margin-right:8px;
-font-size:13px
+font-size:13px;
 }
 
+
 .links a:hover{
-background:#007c91
+background:#007c91;
 }
+
+
+
+/* ABSTRACT */
 
 .expand{
 margin-top:14px;
@@ -126,23 +208,30 @@ border:none;
 background:none;
 cursor:pointer;
 color:#007c91;
-padding:0
+padding:0;
+font-size:15px;
 }
+
 
 .abstract{
 margin-top:15px;
 padding-left:15px;
 border-left:4px solid #007c91;
-line-height:1.6
+line-height:1.6;
 }
+
 
 .hidden{
-display:none
+display:none;
 }
 
+
+/* TAGS */
+
 .tags{
-margin-top:12px
+margin-top:12px;
 }
+
 
 .tag{
 display:inline-block;
@@ -151,72 +240,162 @@ color:#00576b;
 padding:5px 10px;
 border-radius:20px;
 font-size:12px;
-margin:3px
+margin:3px;
 }
+
 
 footer{
 text-align:center;
 padding:35px;
-color:#777
+color:#777;
 }
+
 </style>
+
 </head>
 
 <body>
 
+
 <header>
+
 <h1>🌊 Urban Oceans Library</h1>
+
 <p>Zotero CSL JSON Research Collection</p>
+
 </header>
+
+
+<div id="search">
+
+<input 
+id="searchBox"
+type="text"
+placeholder="Search by title or author..."
+oninput="updateLibrary()">
+
+</div>
+
+
+<div id="filters">
+
+<select id="yearFilter" onchange="updateLibrary()">
+
+<option value="all">
+All Years
+</option>
+
+</select>
+
+</div>
+
 
 <div id="tabs"></div>
 
+
 <div id="sort">
-<button class="tab active" onclick="sortLibrary('title')">Title A–Z</button>
-<button class="tab" onclick="sortLibrary('year')">Newest Year</button>
-<button class="tab" onclick="sortLibrary('author')">Author A–Z</button>
+
+<button class="tab active" onclick="sortLibrary('title')">
+Title A–Z
+</button>
+
+<button class="tab" onclick="sortLibrary('year')">
+Newest Year
+</button>
+
+<button class="tab" onclick="sortLibrary('author')">
+Author A–Z
+</button>
+
 </div>
 
-<main id="library">Loading publications...</main>
+
+<main id="library">
+Loading publications...
+</main>
+
 
 <footer>
 Urban Oceans Research Library
 </footer>
 
+
 <script>
 
 let publications=[];
+let activeTab="All";
+
+
 const library=document.getElementById("library");
 const tabs=document.getElementById("tabs");
+const yearFilter=document.getElementById("yearFilter");
+
+
 
 fetch("Urban-Oceans-2025.json")
+
 .then(response=>response.json())
+
 .then(data=>{
 
 publications=data;
 
-sortByTitle();
+
+/* permanent A-Z numbering */
+
+publications.sort((a,b)=>
+
+(a.title||"").localeCompare(
+b.title||"",
+undefined,
+{sensitivity:"base"}
+)
+
+);
+
 
 publications.forEach((item,index)=>{
-item.libraryIndex=String(index+1).padStart(3,"0");
+
+item.libraryIndex=
+String(index+1).padStart(3,"0");
+
 });
+
+
+
+createYearFilter();
 
 createTabs();
+
 display(publications);
 
+
 })
+
 .catch(error=>{
-library.innerHTML="<h2>Could not load JSON file.</h2>";
+
+library.innerHTML=
+"<h2>Could not load JSON file.</h2>";
+
 console.error(error);
+
 });
 
+  
 function getYear(item){
-return Number(item.issued?.["date-parts"]?.[0]?.[0])||0;
+
+return Number(
+item.issued?.["date-parts"]?.[0]?.[0]
+)||0;
+
 }
+
+
 
 function getType(item){
 
 const types={
+
 "article-journal":"Journal Article",
 "article-magazine":"Magazine Article",
 "article-newspaper":"Newspaper Article",
@@ -226,133 +405,398 @@ const types={
 "thesis":"Thesis",
 "paper-conference":"Conference Paper",
 "webpage":"Web Page"
+
 };
 
 return types[item.type]||"Other";
 
 }
 
-function createTabs(){
 
-tabs.innerHTML="";
-let counts={};
 
-publications.forEach(item=>{
-let type=getType(item);
-counts[type]=(counts[type]||0)+1;
-});
 
-addTab("All",publications);
+function createYearFilter(){
 
-Object.keys(counts).sort().forEach(type=>{
-addTab(type,publications.filter(item=>getType(item)===type));
+let years=[...new Set(
+
+publications
+.map(item=>getYear(item))
+.filter(year=>year)
+
+)]
+
+.sort((a,b)=>b-a);
+
+
+
+years.forEach(year=>{
+
+let option=document.createElement("option");
+
+option.value=year;
+
+option.textContent=year;
+
+yearFilter.appendChild(option);
+
 });
 
 }
+
+
+
+
+
+function createTabs(){
+
+tabs.innerHTML="";
+
+let counts={};
+
+
+
+publications.forEach(item=>{
+
+let type=getType(item);
+
+counts[type]=(counts[type]||0)+1;
+
+});
+
+
+
+addTab("All",publications);
+
+
+
+Object.keys(counts)
+.sort()
+.forEach(type=>{
+
+addTab(
+type,
+publications.filter(
+item=>getType(item)===type
+)
+);
+
+});
+
+}
+
+
+
 
 function addTab(name,data){
 
 let button=document.createElement("button");
+
 button.className="tab";
-button.textContent=`${name} (${data.length})`;
+
+button.textContent=
+`${name} (${data.length})`;
+
+
 
 button.onclick=function(){
 
-document.querySelectorAll("#tabs .tab")
-.forEach(b=>b.classList.remove("active"));
+activeTab=name;
+
+
+document
+.querySelectorAll("#tabs .tab")
+.forEach(b=>
+b.classList.remove("active")
+);
+
 
 button.classList.add("active");
-display(data);
+
+
+updateLibrary();
+
 
 };
 
+
+
 tabs.appendChild(button);
 
-if(name==="All")button.classList.add("active");
+
+
+if(name==="All"){
+
+button.classList.add("active");
 
 }
+
+}
+
+
+
+
+
+function getAuthor(item){
+
+if(!item.author ||
+!item.author.length){
+
+return "";
+
+}
+
+
+let first=item.author[0];
+
+
+return first.family ||
+first.literal ||
+"";
+
+}
+
+
+
+
 
 function sortByTitle(){
 
 publications.sort((a,b)=>
+
 (a.title||"").localeCompare(
 b.title||"",
 undefined,
 {sensitivity:"base"}
-));
+)
 
-}
-
-
-function sortByYear(){
-
-publications.sort((a,b)=>
-getYear(b)-getYear(a)
 );
 
 }
 
 
+
+
+function sortByYear(){
+
+publications.sort((a,b)=>
+
+getYear(b)-getYear(a)
+
+);
+
+}
+
+
+
+
 function sortByAuthor(){
 
 publications.sort((a,b)=>
+
 getAuthor(a).localeCompare(
 getAuthor(b),
 undefined,
 {sensitivity:"base"}
-));
+)
+
+);
 
 }
 
 
-function getAuthor(item){
-
-if(!item.author||!item.author.length)return "";
-
-let author=item.author[0];
-
-return author.family||author.literal||"";
-
-}
 
 
 function sortLibrary(method){
 
-if(method==="title")sortByTitle();
 
-if(method==="year")sortByYear();
+if(method==="title"){
 
-if(method==="author")sortByAuthor();
+sortByTitle();
 
-display(publications);
+}
+
+
+if(method==="year"){
+
+sortByYear();
+
+}
+
+
+if(method==="author"){
+
+sortByAuthor();
+
+}
+
+
+updateLibrary();
 
 }
 
 
 
+
+
+function updateLibrary(){
+
+let results=[...publications];
+
+
+
+/* TAB FILTER */
+
+if(activeTab!=="All"){
+
+results=
+results.filter(item=>
+getType(item)===activeTab
+);
+
+}
+
+
+
+
+
+/* YEAR FILTER */
+
+let selectedYear=
+yearFilter.value;
+
+
+if(selectedYear!=="all"){
+
+results=
+results.filter(item=>
+
+String(getYear(item))===selectedYear
+
+);
+
+}
+
+
+
+
+
+/* SEARCH */
+
+let query=
+document
+.getElementById("searchBox")
+.value
+.toLowerCase()
+.trim();
+
+
+
+if(query){
+
+results=
+results.filter(item=>{
+
+
+let title=
+(item.title||"")
+.toLowerCase();
+
+
+
+let authors=
+(item.author||[])
+.map(author=>{
+
+
+return (
+
+author.family||
+author.literal||
+""
+
+);
+
+
+})
+.join(" ")
+.toLowerCase();
+
+
+
+return (
+
+title.includes(query)
+
+||
+
+authors.includes(query)
+
+);
+
+
+});
+
+
+}
+
+
+
+display(results);
+
+}
+
+  
 function display(items){
 
 library.innerHTML="";
 
+
+if(items.length===0){
+
+library.innerHTML=
+"<h3>No matching publications found.</h3>";
+
+return;
+
+}
+
+
+
 items.forEach(item=>{
 
-let authors=(item.author||[])
+
+let authors=
+(item.author||[])
+
 .map(author=>{
 
-if(author.literal)return author.literal;
+
+if(author.literal){
+
+return author.literal;
+
+}
+
 
 return `${author.given||""} ${author.family||""}`.trim();
 
+
 })
+
 .join(", ");
+
+
+
 
 
 let links="";
 
 
+
 if(item.URL){
 
 links+=`
+
 <a href="${item.URL}" target="_blank">
 Link
 </a>`;
@@ -360,9 +804,11 @@ Link
 }
 
 
+
 if(item.DOI){
 
 links+=`
+
 <a href="https://doi.org/${item.DOI}" target="_blank">
 DOI
 </a>`;
@@ -371,97 +817,180 @@ DOI
 
 
 
+
+
 let tags="";
 
 
 if(item.keyword){
 
-tags=item.keyword
-.map(k=>`<span class="tag">${k}</span>`)
+
+tags=
+item.keyword
+
+.map(k=>
+
+`<span class="tag">
+${k}
+</span>`
+
+)
+
 .join("");
+
 
 }
 
 
 
+
+
+
 let card=document.createElement("div");
 
+
 card.className="card";
+
 
 
 card.innerHTML=`
 
 <div class="citation-row">
 
+
 <div class="number">
+
 ${item.libraryIndex}
+
 </div>
+
+
 
 <div class="citation">
 
+
 <div class="title">
+
 ${item.title||"Untitled"}
+
 </div>
+
+
 
 <div class="authors">
+
 ${authors}
+
 </div>
+
+
 
 <div class="journal">
-${item["container-title"]||""} | ${getYear(item)}
+
+${item["container-title"]||""}
+
+| ${getYear(item)}
+
 </div>
+
+
+
 
 <div class="links">
+
 ${links}
+
 </div>
 
-<button class="expand" onclick="toggleAbstract(this)">
+
+
+
+<button class="expand"
+onclick="toggleAbstract(this)">
+
 ▼ Abstract
+
 </button>
 
+
+
 <div class="abstract hidden">
+
 ${item.abstract||"No abstract available."}
+
 </div>
+
+
 
 <div class="tags">
+
 ${tags}
-</div>
 
 </div>
 
+
+
 </div>
+
+
+</div>
+
 `;
+
+
 
 library.appendChild(card);
 
+
 });
 
+
 }
+
+
+
 
 
 
 function toggleAbstract(button){
 
-let abstract=button.nextElementSibling;
 
-if(abstract.classList.contains("hidden")){
+let abstract=
+button.nextElementSibling;
+
+
+
+if(
+abstract.classList.contains("hidden")
+){
+
 
 abstract.classList.remove("hidden");
-button.innerHTML="▲ Hide Abstract";
+
+button.innerHTML=
+"▲ Hide Abstract";
+
 
 }
 
 else{
 
+
 abstract.classList.add("hidden");
-button.innerHTML="▼ Abstract";
+
+button.innerHTML=
+"▼ Abstract";
+
 
 }
 
+
 }
+
 
 
 </script>
 
 </body>
+
 </html>
