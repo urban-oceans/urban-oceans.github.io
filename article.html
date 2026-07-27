@@ -14,135 +14,204 @@
     box-sizing:border-box;
 }
 
+
 body{
+
     margin:0;
-    font-family:Arial, Helvetica, sans-serif;
-    background:#f4f7f9;
+    font-family:
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+
+    background:#f3f7f8;
     color:#333;
+
 }
 
 
+
+/* Header */
+
 header{
 
-    background:#064663;
+    background:
+    linear-gradient(
+        135deg,
+        #003b4d,
+        #007c91
+    );
+
     color:white;
+
+    padding:50px 20px;
+
     text-align:center;
-    padding:40px 20px;
 
 }
 
 
 header h1{
 
-    margin:0;
     font-size:42px;
+    margin:0;
 
 }
 
 
 header p{
 
-    margin-top:10px;
+    font-size:18px;
     opacity:.85;
 
 }
 
 
+
 /* Tabs */
+
 
 #tabs{
 
     display:flex;
+
     flex-wrap:wrap;
+
     justify-content:center;
+
     gap:10px;
-    padding:25px;
+
+    padding:30px;
 
 }
+
 
 
 .tab{
 
     border:none;
-    background:#dbeaf2;
-    color:#064663;
+
+    background:#d9edf2;
+
+    color:#003b4d;
+
     padding:10px 18px;
-    border-radius:25px;
+
+    border-radius:30px;
+
     cursor:pointer;
+
     font-size:15px;
 
 }
 
 
+
 .tab:hover,
 .tab.active{
 
-    background:#064663;
+    background:#003b4d;
+
     color:white;
 
 }
 
 
 
-/* Publications */
+
+/* Library */
+
 
 #library{
 
     max-width:1100px;
+
     margin:auto;
+
     padding:20px;
 
 }
 
 
+
 .card{
 
     background:white;
-    border-radius:12px;
-    padding:25px;
+
     margin-bottom:25px;
-    box-shadow:0 4px 15px rgba(0,0,0,.08);
+
+    padding:30px;
+
+    border-radius:15px;
+
+    box-shadow:
+    0 5px 20px rgba(0,0,0,.08);
 
 }
+
 
 
 .type{
 
     display:inline-block;
-    background:#064663;
+
+    background:#007c91;
+
     color:white;
+
     padding:5px 12px;
+
     border-radius:20px;
+
     font-size:13px;
-    margin-bottom:15px;
 
 }
+
 
 
 .title{
 
-    color:#064663;
+    margin-top:15px;
+
     font-size:24px;
+
     font-weight:bold;
-    margin-bottom:10px;
+
+    color:#003b4d;
 
 }
 
 
-.meta{
+
+.authors{
+
+    margin-top:12px;
+
+    color:#555;
+
+}
+
+
+
+.journal{
+
+    margin-top:8px;
+
+    font-style:italic;
 
     color:#666;
-    line-height:1.6;
 
 }
+
 
 
 .abstract{
 
-    margin-top:18px;
+    margin-top:20px;
+
     line-height:1.7;
 
 }
+
 
 
 .tags{
@@ -152,34 +221,56 @@ header p{
 }
 
 
+
 .tag{
 
     display:inline-block;
-    background:#e1f1f7;
-    color:#064663;
-    padding:5px 10px;
-    border-radius:15px;
+
+    background:#e3f3f7;
+
+    color:#00576b;
+
+    padding:6px 12px;
+
+    border-radius:20px;
+
     margin:3px;
+
     font-size:12px;
 
 }
 
 
+
 .links{
 
-    margin-top:20px;
+    margin-top:25px;
 
 }
 
 
+
 .links a{
 
-    background:#064663;
+    background:#003b4d;
+
     color:white;
-    text-decoration:none;
-    padding:8px 14px;
+
+    padding:9px 15px;
+
     border-radius:6px;
+
+    text-decoration:none;
+
     margin-right:8px;
+
+}
+
+
+
+.links a:hover{
+
+    background:#007c91;
 
 }
 
@@ -188,15 +279,19 @@ header p{
 footer{
 
     text-align:center;
+
     padding:40px;
+
     color:#777;
 
 }
 
 
+
 </style>
 
 </head>
+
 
 
 <body>
@@ -206,7 +301,7 @@ footer{
 
 <h1>🌊 Urban Oceans Library</h1>
 
-<p>Zotero Research Collection</p>
+<p>Research collection powered by Zotero</p>
 
 </header>
 
@@ -225,9 +320,10 @@ Loading publications...
 
 <footer>
 
-Generated from Zotero JSON
+Urban Oceans Research Library
 
 </footer>
+
 
 
 
@@ -235,16 +331,21 @@ Generated from Zotero JSON
 <script>
 
 
-let items=[];
+let publications=[];
 
 
-const library=document.getElementById("library");
-
-const tabs=document.getElementById("tabs");
-
+const library =
+document.getElementById("library");
 
 
-fetch("Urban Oceans final 2025.json")
+const tabs =
+document.getElementById("tabs");
+
+
+
+
+
+fetch("Urban Oceans 2025.json")
 
 
 .then(response=>response.json())
@@ -253,41 +354,92 @@ fetch("Urban Oceans final 2025.json")
 .then(data=>{
 
 
-    items=data;
+    publications=data;
 
 
-    // newest first
+    publications.sort((a,b)=>{
 
-    items.sort((a,b)=>{
-
-        let yearA=parseInt(a.date)||0;
-
-        let yearB=parseInt(b.date)||0;
-
-        return yearB-yearA;
+        return getYear(b)-getYear(a);
 
     });
-
 
 
     createTabs();
 
 
-    display(items);
+    display(publications);
 
 
 })
 
-
 .catch(error=>{
 
     library.innerHTML=
-    "<h2>Unable to load Zotero JSON file.</h2>";
+    "<h2>Could not load CSL JSON file.</h2>";
 
     console.error(error);
 
 });
 
+
+
+
+
+
+
+function getYear(item){
+
+    return Number(
+        item.issued
+        ?.["date-parts"]
+        ?. [0]
+        ?. [0]
+    ) || 0;
+
+}
+
+
+
+
+
+function getType(item){
+
+
+    const names={
+
+        "article-journal":
+        "Journal Article",
+
+        "article-magazine":
+        "Magazine Article",
+
+        "article-newspaper":
+        "Newspaper Article",
+
+        "book":
+        "Book",
+
+        "chapter":
+        "Book Chapter",
+
+        "report":
+        "Report",
+
+        "thesis":
+        "Thesis",
+
+        "paper-conference":
+        "Conference Paper",
+
+        "webpage":
+        "Web Page"
+
+    };
+
+
+    return names[item.type] || "Other";
+
+}
 
 
 
@@ -302,42 +454,46 @@ function createTabs(){
     let counts={};
 
 
-    items.forEach(item=>{
+    publications.forEach(item=>{
 
 
-        let type=item.itemType || "Other";
+        let type=getType(item);
 
 
-        counts[type]=(counts[type]||0)+1;
+        counts[type]=
+        (counts[type]||0)+1;
 
 
     });
-
 
 
 
     addTab(
         "All",
-        items.length,
-        items
+        publications
     );
 
 
 
     Object.keys(counts)
+
     .sort()
+
     .forEach(type=>{
 
 
         addTab(
+
             type,
-            counts[type],
-            items.filter(item=>item.itemType===type)
+
+            publications.filter(
+                item=>getType(item)===type
+            )
+
         );
 
 
     });
-
 
 
 }
@@ -345,17 +501,20 @@ function createTabs(){
 
 
 
-function addTab(name,count,data){
 
 
-    let button=document.createElement("button");
+function addTab(name,data){
+
+
+    let button =
+    document.createElement("button");
 
 
     button.className="tab";
 
 
-    button.textContent=
-    `${name} (${count})`;
+    button.textContent =
+    `${name} (${data.length})`;
 
 
 
@@ -364,8 +523,9 @@ function addTab(name,count,data){
 
         document
         .querySelectorAll(".tab")
-        .forEach(tab=>tab.classList.remove("active"));
-
+        .forEach(b=>
+            b.classList.remove("active")
+        );
 
 
         button.classList.add("active");
@@ -388,29 +548,38 @@ function addTab(name,count,data){
 
     }
 
-
 }
 
 
 
 
 
-function display(publications){
+function display(items){
 
 
     library.innerHTML="";
 
 
 
-    publications.forEach(item=>{
+    items.forEach(item=>{
 
 
-        let authors=(item.creators||[])
+        let authors =
+        (item.author || [])
 
-        .map(author=>{
+        .map(a=>{
 
-            return `${author.firstName || ""}
-            ${author.lastName || ""}`.trim();
+
+            if(a.literal){
+
+                return a.literal;
+
+            }
+
+
+            return `${a.given || ""}
+            ${a.family || ""}`.trim();
+
 
         })
 
@@ -419,17 +588,27 @@ function display(publications){
 
 
 
-        let tags=(item.tags||[])
 
-        .map(tag=>{
+        let keywords="";
 
-            return `<span class="tag">
-            ${tag.tag}
-            </span>`;
 
-        })
+        if(item.keyword){
 
-        .join("");
+
+            keywords =
+            item.keyword
+
+            .map(k=>
+
+                `<span class="tag">
+                ${k}
+                </span>`
+
+            )
+
+            .join("");
+
+        }
 
 
 
@@ -437,11 +616,14 @@ function display(publications){
         let links="";
 
 
-        if(item.url){
 
-            links+=`
-            <a href="${item.url}" target="_blank">
-            Website
+        if(item.URL){
+
+            links +=
+
+            `<a href="${item.URL}"
+            target="_blank">
+            Link
             </a>`;
 
         }
@@ -450,8 +632,11 @@ function display(publications){
 
         if(item.DOI){
 
-            links+=`
-            <a href="https://doi.org/${item.DOI}" target="_blank">
+
+            links +=
+
+            `<a href="https://doi.org/${item.DOI}"
+            target="_blank">
             DOI
             </a>`;
 
@@ -460,7 +645,10 @@ function display(publications){
 
 
 
-        let card=document.createElement("div");
+
+
+        let card =
+        document.createElement("div");
 
 
         card.className="card";
@@ -470,30 +658,34 @@ function display(publications){
         card.innerHTML=`
 
         <div class="type">
-        ${item.itemType || "Other"}
+
+        ${getType(item)}
+
         </div>
+
 
 
         <div class="title">
+
         ${item.title || "Untitled"}
+
         </div>
 
 
-        <div class="meta">
+
+        <div class="authors">
 
         ${authors}
 
-        <br>
+        </div>
 
-        ${item.publicationTitle || ""}
 
-        <br>
 
-        ${item.publisher || ""}
+        <div class="journal">
 
-        <br>
+        ${item["container-title"] || ""}
 
-        ${item.date || ""}
+        ${getYear(item)}
 
         </div>
 
@@ -501,7 +693,10 @@ function display(publications){
 
         <div class="abstract">
 
-        ${item.abstractNote || "No abstract available."}
+        ${
+            item.abstract ||
+            "No abstract available."
+        }
 
         </div>
 
@@ -509,7 +704,7 @@ function display(publications){
 
         <div class="tags">
 
-        ${tags}
+        ${keywords}
 
         </div>
 
@@ -523,12 +718,18 @@ function display(publications){
 
 
         `;
+
+
+
         library.appendChild(card);
+
+
 
     });
 
 
 }
+
 
 
 
