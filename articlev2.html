@@ -119,7 +119,7 @@ let matchedCsvTitles = [];
 let csvHeaders = [];
 
 function loadCsvTags() {
-    fetch("tags.csv")
+    fetch("article_tags.csv")
       .then(r => r.text())
       .then(text => {
         const rows = text.split("\n").map(r => r.split(","));
