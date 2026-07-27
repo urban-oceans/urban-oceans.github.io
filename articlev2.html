@@ -118,20 +118,27 @@ let unmatchedCsvTitles = [];
 let matchedCsvTitles = [];
 let csvHeaders = [];
 
-function loadCsvTags() {
+   function loadCsvTags() {
   fetch("article_tags.csv")
     .then(r => r.text())
     .then(text => {
-      const rows = text.split("\n").map(r => r.split(","));
-      csvHeaders = rows[0].slice(1); // tag names (e.g., A: Abstract, B: Exclude, D: ...)
+      // Split rows safely using regex that respects quoted commas
+      const rows = text
+        .trim()
+        .split(/\r?\n/)
+        .map(line => {
+          const matches = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+          return matches ? matches.map(v => v.replace(/^"|"$/g, "").trim()) : [];
+        });
+
+      csvHeaders = rows[0].slice(1); // tag names
 
       rows.slice(1).forEach(row => {
         if (row.length < 2) return;
 
-        // --- Extract and clean title ---
         let rawTitle = row[0].trim();
 
-        // Remove leading number and colon (e.g., "1 : ")
+        // Remove leading number and colon (e.g., "7 : ")
         rawTitle = rawTitle.replace(/^\d+\s*:\s*/, "");
 
         // Replace "~" with ":" for consistency
@@ -140,8 +147,6 @@ function loadCsvTags() {
         if (!rawTitle) return;
 
         const titleKey = rawTitle.toLowerCase();
-
-        // --- Extract tag values ---
         const values = row.slice(1).map(v => v.trim());
         const activeTags = csvHeaders.filter((h, i) => values[i] === "1");
 
@@ -156,6 +161,7 @@ function loadCsvTags() {
       updateLibrary();
     });
 }
+
 
 
 /* ---------------------------
