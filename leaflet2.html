@@ -8,7 +8,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>Urban Ocean Studies Distribution Map</title>
+    <title>Map of Urban Ocean Studies</title>
 
     <!-- Leaflet CSS -->
     <link
@@ -18,27 +18,152 @@
 
     <style>
 
+        /* =====================================================
+           PAGE
+        ===================================================== */
+
         html, body {
             height: 100%;
             margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
         }
+
+
+        /* =====================================================
+           HEADING
+        ===================================================== */
+
+        #header {
+            height: 70px;
+            background: #1f4e5f;
+            color: white;
+
+            display: flex;
+            align-items: center;
+
+            padding-left: 25px;
+            box-sizing: border-box;
+
+            font-size: 24px;
+            font-weight: bold;
+
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+
+            position: relative;
+            z-index: 1000;
+        }
+
+
+        /* =====================================================
+           MAIN CONTENT
+        ===================================================== */
+
+        #main {
+            height: calc(100vh - 70px);
+            display: flex;
+        }
+
+
+        /* =====================================================
+           SIDEBAR
+        ===================================================== */
+
+        #sidebar {
+            width: 300px;
+            background: #ffffff;
+
+            padding: 25px;
+
+            box-sizing: border-box;
+
+            overflow-y: auto;
+
+            box-shadow:
+                2px 0 8px rgba(0,0,0,0.15);
+
+            z-index: 1000;
+        }
+
+
+        #sidebar h2 {
+            margin-top: 0;
+            color: #1f4e5f;
+            font-size: 20px;
+        }
+
+
+        #sidebar h3 {
+            margin-top: 25px;
+            margin-bottom: 10px;
+
+            color: #333;
+            font-size: 16px;
+        }
+
+
+        #sidebar p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+
+        /* =====================================================
+           LEGEND IN SIDEBAR
+        ===================================================== */
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+
+            margin-bottom: 8px;
+
+            font-size: 14px;
+        }
+
+
+        .legend-circle {
+            width: 14px;
+            height: 14px;
+
+            border-radius: 50%;
+
+            border: 1px solid #333;
+
+            margin-right: 8px;
+        }
+
+
+        /* =====================================================
+           MAP
+        ===================================================== */
 
         #map {
-            width: 100%;
-            height: 100vh;
+            flex: 1;
+            height: 100%;
         }
 
-        .legend {
-            background: white;
-            padding: 10px;
-            line-height: 1.5;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            border-radius: 5px;
-        }
 
-        .legend-title {
-            font-weight: bold;
-            margin-bottom: 5px;
+        /* =====================================================
+           SMALL SCREEN
+        ===================================================== */
+
+        @media (max-width: 700px) {
+
+            #header {
+                font-size: 19px;
+                height: 60px;
+            }
+
+            #main {
+                height: calc(100vh - 60px);
+            }
+
+            #sidebar {
+                width: 230px;
+                padding: 15px;
+            }
+
         }
 
     </style>
@@ -48,13 +173,172 @@
 
 <body>
 
-<div id="map"></div>
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<div id="header">
+
+    Non-agricultural Studies Map
+
+</div>
+
+
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+
+<div id="main">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <div id="sidebar">
+
+        <h2>
+            Non-agricultural Studies
+        </h2>
+
+
+        <p>
+            This map shows the geographic distribution of
+            non-agricultural studies. Circle size and colour
+            represent the number of publications associated
+            with each study location.
+        </p>
+
+
+        <h3>
+            Number of papers
+        </h3>
+
+
+        <div class="legend-item">
+
+            <span
+                class="legend-circle"
+                style="background:#FED976;">
+            </span>
+
+            1
+
+        </div>
+
+
+        <div class="legend-item">
+
+            <span
+                class="legend-circle"
+                style="background:#FEB24C;">
+            </span>
+
+            2–4
+
+        </div>
+
+
+        <div class="legend-item">
+
+            <span
+                class="legend-circle"
+                style="background:#FD8D3C;">
+            </span>
+
+            5–9
+
+        </div>
+
+
+        <div class="legend-item">
+
+            <span
+                class="legend-circle"
+                style="background:#FC4E2A;">
+            </span>
+
+            10–24
+
+        </div>
+
+
+        <div class="legend-item">
+
+            <span
+                class="legend-circle"
+                style="background:#E31A1C;">
+            </span>
+
+            25–49
+
+        </div>
+
+
+        <div class="legend-item">
+
+            <span
+                class="legend-circle"
+                style="background:#BD0026;">
+            </span>
+
+            50–99
+
+        </div>
+
+
+        <div class="legend-item">
+
+            <span
+                class="legend-circle"
+                style="background:#800026;">
+            </span>
+
+            100+
+
+        </div>
+
+
+        <h3>
+            Map information
+        </h3>
+
+
+        <p>
+            Larger circles indicate a greater number of
+            publications. Darker colours represent higher
+            publication counts.
+        </p>
+
+
+        <p>
+            Click on a circle to view the study location
+            and number of papers.
+        </p>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         MAP
+    ====================================================== -->
+
+    <div id="map"></div>
+
+
+</div>
+
 
 
 <!-- Leaflet JavaScript -->
+
 <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
 </script>
+
 
 
 <script>
@@ -105,9 +389,6 @@ function getColor(value) {
 
 function getRadius(value) {
 
-    // Square-root scaling makes the circles
-    // visually proportional to the number of papers.
-
     return Math.max(
         4,
         Math.sqrt(value) * 3
@@ -119,44 +400,64 @@ function getRadius(value) {
 // 5. LOAD CSV
 // ============================================================
 
-fetch('geodata.csv')
+// Cache-busting ensures that the newest CSV is loaded.
 
-    .then(response => response.text())
+fetch('geodata.csv?v=' + Date.now())
+
+    .then(response => {
+
+        if (!response.ok) {
+            throw new Error(
+                'Could not load data.csv'
+            );
+        }
+
+        return response.text();
+
+    })
 
     .then(csv => {
 
-        const rows = csv.trim().split('\n');
+        const rows =
+            csv.trim().split('\n');
+
 
         // First row = headers
-        const headers = rows[0]
-            .split(',')
-            .map(h => h.trim());
+
+        const headers =
+            rows[0]
+                .split(',')
+                .map(h => h.trim());
 
 
         // ----------------------------------------------------
         // Convert CSV rows into objects
         // ----------------------------------------------------
 
-        const data = rows.slice(1).map(row => {
+        const data =
+            rows.slice(1).map(row => {
 
-            const values = row.split(',');
+                const values =
+                    row.split(',');
 
-            let obj = {};
+                let obj = {};
 
-            headers.forEach(
-                (header, index) => {
 
-                    obj[header] =
-                        values[index]
-                        ? values[index].trim()
-                        : '';
+                headers.forEach(
+                    (header, index) => {
 
-                }
-            );
+                        obj[header] =
+                            values[index]
+                            ? values[index].trim()
+                            : '';
 
-            return obj;
+                    }
+                );
 
-        });
+
+                return obj;
+
+            });
 
 
         // ----------------------------------------------------
@@ -166,22 +467,33 @@ fetch('geodata.csv')
         data.forEach(d => {
 
             const lat =
-                parseFloat(d['Latitude']);
+                parseFloat(
+                    d['Latitude']
+                );
+
 
             const lon =
-                parseFloat(d['Longitude']);
+                parseFloat(
+                    d['Longitude']
+                );
+
 
             const value =
-                parseFloat(d['Value (non-ag)']);
+                parseFloat(
+                    d['Value (non-ag)']
+                );
 
 
             // Skip invalid rows
+
             if (
                 isNaN(lat) ||
                 isNaN(lon) ||
                 isNaN(value)
             ) {
+
                 return;
+
             }
 
 
@@ -222,16 +534,24 @@ fetch('geodata.csv')
 
             circle.bindPopup(`
 
-                <b>${d['Location of study']}</b>
+                <b>
+                    ${d['Location of study']}
+                </b>
 
                 <br><br>
 
-                <b>Number of papers:</b>
+                <b>
+                    Number of papers:
+                </b>
+
                 ${value}
 
                 <br>
 
-                <b>Log value:</b>
+                <b>
+                    Log value:
+                </b>
+
                 ${d['log Value (non-ag)']}
 
             `);
@@ -241,77 +561,19 @@ fetch('geodata.csv')
 
         });
 
-    });
+    })
 
+    .catch(error => {
 
-// ============================================================
-// 6. LEGEND
-// ============================================================
-
-const legend =
-    L.control({position: 'bottomright'});
-
-
-legend.onAdd = function() {
-
-    const div =
-        L.DomUtil.create(
-            'div',
-            'legend'
+        console.error(
+            'Error loading CSV:',
+            error
         );
 
-
-    div.innerHTML =
-        '<div class="legend-title">' +
-        'Number of papers' +
-        '</div>';
-
-
-    const values = [
-        1,
-        2,
-        5,
-        10,
-        25,
-        50,
-        100
-    ];
-
-
-    values.forEach(value => {
-
-        div.innerHTML += `
-
-            <div>
-
-                <span style="
-                    display:inline-block;
-                    width:12px;
-                    height:12px;
-                    background:${getColor(value)};
-                    border:1px solid #333;
-                    border-radius:50%;
-                    margin-right:5px;
-                "></span>
-
-                ${value}
-
-            </div>
-
-        `;
-
     });
 
-
-    return div;
-
-};
-
-
-legend.addTo(map);
-
-
 </script>
+
 
 </body>
 
