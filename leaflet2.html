@@ -1,44 +1,226 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <title>Non-agricultural Studies Map</title>
+    <title>
+        Non-agricultural Studies Map
+    </title>
 
-    <!-- Leaflet CSS -->
+
+    <!-- =====================================================
+         LEAFLET CSS
+         ===================================================== -->
+
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
+    >
+
+
+    <!-- =====================================================
+         PAGE STYLE
+         ===================================================== -->
 
     <style>
 
-        html, body {
+        html,
+        body {
+
+            width: 100%;
             height: 100%;
+
             margin: 0;
+            padding: 0;
+
         }
+
 
         #map {
+
             width: 100%;
             height: 100vh;
+
         }
+
+
+        /* =================================================
+           TITLE
+           ================================================= */
+
+        .map-title {
+
+            position: absolute;
+
+            top: 15px;
+            left: 55px;
+
+            z-index: 1000;
+
+            background: rgba(255,255,255,0.94);
+
+            padding: 10px 15px;
+
+            border-radius: 5px;
+
+            box-shadow:
+                0 1px 5px rgba(0,0,0,0.3);
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+        }
+
+
+        /* =================================================
+           LEGEND
+           ================================================= */
 
         .legend {
-            background: white;
-            padding: 10px;
-            line-height: 1.5;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+
+            background:
+                rgba(255,255,255,0.95);
+
+            padding: 12px;
+
             border-radius: 5px;
+
+            box-shadow:
+                0 1px 5px rgba(0,0,0,0.3);
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            font-size: 12px;
+
+            line-height: 1.4;
+
         }
 
+
         .legend-title {
+
             font-weight: bold;
-            margin-bottom: 5px;
+
+            font-size: 13px;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .gradient-bar {
+
+            width: 220px;
+
+            height: 16px;
+
+            background: linear-gradient(
+                to right,
+
+                #30123B 0%,
+
+                #3B4CC0 15%,
+
+                #2C7BB6 30%,
+
+                #00A6CA 45%,
+
+                #00CC66 60%,
+
+                #7FD34E 72%,
+
+                #FDE725 82%,
+
+                #FCA636 90%,
+
+                #E34A33 96%,
+
+                #8B0000 100%
+
+            );
+
+            border: 1px solid #555;
+
+            border-radius: 3px;
+
+        }
+
+
+        .legend-labels {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            width: 220px;
+
+            margin-top: 3px;
+
+        }
+
+
+        /* =================================================
+           POPUP
+           ================================================= */
+
+        .popup-title {
+
+            font-size: 15px;
+
+            font-weight: bold;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .popup-value {
+
+            font-size: 14px;
+
+        }
+
+
+        /* =================================================
+           INFO BOX
+           ================================================= */
+
+        .info-box {
+
+            background:
+                rgba(255,255,255,0.95);
+
+            padding: 10px 12px;
+
+            border-radius: 5px;
+
+            box-shadow:
+                0 1px 5px rgba(0,0,0,0.3);
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            font-size: 12px;
+
         }
 
     </style>
@@ -48,270 +230,626 @@
 
 <body>
 
+
+<!-- =======================================================
+     MAP TITLE
+     ======================================================= -->
+
+<div class="map-title">
+
+    Non-agricultural research studies
+
+</div>
+
+
+<!-- =======================================================
+     MAP
+     ======================================================= -->
+
 <div id="map"></div>
 
 
-<!-- Leaflet JavaScript -->
+<!-- =======================================================
+     LEAFLET JAVASCRIPT
+     ======================================================= -->
+
 <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
 </script>
 
 
+<!-- =======================================================
+     LEAFLET HEAT PLUGIN
+     ======================================================= -->
+
+<script
+    src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js">
+</script>
+
+
+<!-- =======================================================
+     PAPAPARSE
+     ======================================================= -->
+
+<script
+    src="https://cdn.jsdelivr.net/npm/papaparse@5.4.3/papaparse.min.js">
+</script>
+
+
 <script>
+
 
 // ============================================================
 // 1. CREATE MAP
 // ============================================================
 
-const map = L.map('map').setView(
-    [49.5, -123.5],
-    7
+const map = L.map('map', {
+
+    zoomControl: true,
+
+    preferCanvas: true
+
+});
+
+
+// ============================================================
+// 2. BASE MAP — SATELLITE
+// ============================================================
+
+const satellite = L.tileLayer(
+
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+
+    {
+
+        attribution:
+            'Tiles &copy; Esri',
+
+        maxZoom: 18
+
+    }
+
 );
 
 
 // ============================================================
-// 2. BASE MAP
+// 3. BASE MAP — OPENSTREETMAP
 // ============================================================
 
-L.tileLayer(
+const street = L.tileLayer(
+
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+
     {
+
         attribution:
-            '&copy; OpenStreetMap contributors'
+            '&copy; OpenStreetMap contributors',
+
+        maxZoom: 19
+
+    }
+
+);
+
+
+// Start with satellite imagery
+
+satellite.addTo(map);
+
+
+// ============================================================
+// 4. BASE MAP CONTROL
+// ============================================================
+
+const baseMaps = {
+
+    "Satellite": satellite,
+
+    "Street map": street
+
+};
+
+
+L.control.layers(
+    baseMaps,
+    null,
+    {
+        position: 'topright'
     }
 ).addTo(map);
 
 
 // ============================================================
-// 3. COLOR FUNCTION
+// 5. SPECTRAL COLOR GRADIENT
 // ============================================================
 
-function getColor(value) {
+const spectralGradient = {
 
-    if (value >= 100) return '#800026';
-    if (value >= 50)  return '#BD0026';
-    if (value >= 25)  return '#E31A1C';
-    if (value >= 10)  return '#FC4E2A';
-    if (value >= 5)   return '#FD8D3C';
-    if (value >= 2)   return '#FEB24C';
+    0.00: '#30123B',
 
-    return '#FED976';
-}
+    0.10: '#372A8C',
+
+    0.20: '#3B4CC0',
+
+    0.30: '#2C7BB6',
+
+    0.40: '#00A6CA',
+
+    0.50: '#00C878',
+
+    0.60: '#00CC66',
+
+    0.70: '#7FD34E',
+
+    0.80: '#FDE725',
+
+    0.88: '#FCA636',
+
+    0.94: '#F46D43',
+
+    0.98: '#D73027',
+
+    1.00: '#8B0000'
+
+};
 
 
 // ============================================================
-// 4. RADIUS FUNCTION
+// 6. HEATMAP SETTINGS
 // ============================================================
 
-function getRadius(value) {
+const heatOptions = {
 
-    // Square-root scaling makes the circles
-    // visually proportional to the number of papers.
+    radius: 45,
 
-    return Math.max(
-        4,
-        Math.sqrt(value) * 3
-    );
-}
+    blur: 38,
+
+    maxZoom: 10,
+
+    minOpacity: 0.25,
+
+    max: 122,
+
+    gradient: spectralGradient
+
+};
 
 
 // ============================================================
-// 5. LOAD CSV
+// 7. LOAD CSV
 // ============================================================
 
-fetch('geodata.csv')
+Papa.parse(
 
-    .then(response => response.text())
+    'data.csv',
 
-    .then(csv => {
+    {
 
-        const rows = csv.trim().split('\n');
+        download: true,
 
-        // First row = headers
-        const headers = rows[0]
-            .split(',')
-            .map(h => h.trim());
+        header: true,
 
+        skipEmptyLines: true,
 
-        // ----------------------------------------------------
-        // Convert CSV rows into objects
-        // ----------------------------------------------------
+        complete: function(results) {
 
-        const data = rows.slice(1).map(row => {
+            createMap(results.data);
 
-            const values = row.split(',');
+        },
 
-            let obj = {};
+        error: function(error) {
 
-            headers.forEach(
-                (header, index) => {
-
-                    obj[header] =
-                        values[index]
-                        ? values[index].trim()
-                        : '';
-
-                }
+            console.error(
+                "Could not load data.csv:",
+                error
             );
 
-            return obj;
+            alert(
+                "Could not load data.csv. " +
+                "Make sure it is in the same folder as index.html."
+            );
 
-        });
+        }
+
+    }
+
+);
+
+
+// ============================================================
+// 8. CREATE MAP DATA
+// ============================================================
+
+function createMap(data) {
+
+
+    // --------------------------------------------------------
+    // Heatmap points
+    // --------------------------------------------------------
+
+    const heatPoints = [];
+
+
+    // --------------------------------------------------------
+    // Valid coordinates
+    // --------------------------------------------------------
+
+    const validPoints = [];
+
+
+    // --------------------------------------------------------
+    // Loop through CSV
+    // --------------------------------------------------------
+
+    data.forEach(function(d) {
+
+
+        const lat =
+            parseFloat(
+                d["Latitude"]
+            );
+
+
+        const lon =
+            parseFloat(
+                d["Longitude"]
+            );
+
+
+        const value =
+            parseFloat(
+                d["Value (non-ag)"]
+            );
+
+
+        const logValue =
+            parseFloat(
+                d["log Value (non-ag)"]
+            );
+
+
+        const location =
+            d["Location of study"];
 
 
         // ----------------------------------------------------
-        // Plot points
+        // Skip invalid records
         // ----------------------------------------------------
 
-        data.forEach(d => {
+        if (
 
-            const lat =
-                parseFloat(d['Latitude']);
+            isNaN(lat) ||
 
-            const lon =
-                parseFloat(d['Longitude']);
+            isNaN(lon) ||
 
-            const value =
-                parseFloat(d['Value (non-ag)']);
+            isNaN(value)
 
+        ) {
 
-            // Skip invalid rows
-            if (
-                isNaN(lat) ||
-                isNaN(lon) ||
-                isNaN(value)
-            ) {
-                return;
-            }
+            return;
+
+        }
 
 
-            // ------------------------------------------------
-            // Circle marker
-            // ------------------------------------------------
+        // ----------------------------------------------------
+        // HEATMAP
+        // ----------------------------------------------------
 
-            const circle =
-                L.circleMarker(
-                    [lat, lon],
-                    {
+        heatPoints.push([
 
-                        radius:
-                            getRadius(value),
+            lat,
 
-                        fillColor:
-                            getColor(value),
+            lon,
 
-                        color:
-                            '#333',
+            value
 
-                        weight:
-                            1,
-
-                        opacity:
-                            1,
-
-                        fillOpacity:
-                            0.7
-
-                    }
-                );
+        ]);
 
 
-            // ------------------------------------------------
-            // Popup
-            // ------------------------------------------------
+        // ----------------------------------------------------
+        // SAVE VALID POINT
+        // ----------------------------------------------------
 
-            circle.bindPopup(`
+        validPoints.push({
 
-                <b>${d['Location of study']}</b>
+            lat: lat,
 
-                <br><br>
+            lon: lon,
 
-                <b>Number of papers:</b>
-                ${value}
+            value: value,
 
-                <br>
+            logValue: logValue,
 
-                <b>Log value:</b>
-                ${d['log Value (non-ag)']}
-
-            `);
-
-
-            circle.addTo(map);
+            location: location
 
         });
 
     });
 
 
-// ============================================================
-// 6. LEGEND
-// ============================================================
+    // ========================================================
+    // 9. CREATE HEATMAP
+    // ========================================================
 
-const legend =
-    L.control({position: 'bottomright'});
+    const heatLayer =
 
+        L.heatLayer(
 
-legend.onAdd = function() {
+            heatPoints,
 
-    const div =
-        L.DomUtil.create(
-            'div',
-            'legend'
+            heatOptions
+
         );
 
 
-    div.innerHTML =
-        '<div class="legend-title">' +
-        'Number of papers' +
-        '</div>';
+    heatLayer.addTo(map);
 
 
-    const values = [
-        1,
-        2,
-        5,
-        10,
-        25,
-        50,
-        100
-    ];
+    // ========================================================
+    // 10. INVISIBLE/TRANSPARENT MARKERS
+    //     These allow clicking individual locations
+    // ========================================================
+
+    validPoints.forEach(function(d) {
 
 
-    values.forEach(value => {
+        const marker =
 
-        div.innerHTML += `
+            L.circleMarker(
 
-            <div>
+                [d.lat, d.lon],
 
-                <span style="
-                    display:inline-block;
-                    width:12px;
-                    height:12px;
-                    background:${getColor(value)};
-                    border:1px solid #333;
-                    border-radius:50%;
-                    margin-right:5px;
-                "></span>
+                {
 
-                ${value}
+                    radius: 7,
+
+                    stroke: false,
+
+                    fillColor: '#ffffff',
+
+                    fillOpacity: 0.01,
+
+                    interactive: true
+
+                }
+
+            );
+
+
+        // ----------------------------------------------------
+        // Popup
+        // ----------------------------------------------------
+
+        let logText = "";
+
+        if (!isNaN(d.logValue)) {
+
+            logText =
+                d.logValue.toFixed(3);
+
+        }
+
+
+        marker.bindPopup(`
+
+            <div class="popup-title">
+
+                ${d.location}
+
+            </div>
+
+
+            <div class="popup-value">
+
+                <b>Number of papers:</b>
+
+                ${d.value}
+
+            </div>
+
+
+            <div class="popup-value">
+
+                <b>Log value:</b>
+
+                ${logText}
+
+            </div>
+
+        `);
+
+
+        marker.addTo(map);
+
+    });
+
+
+    // ========================================================
+    // 11. FIT MAP TO DATA
+    // ========================================================
+
+    if (validPoints.length > 0) {
+
+
+        const bounds =
+            L.latLngBounds(
+
+                validPoints.map(
+                    p => [p.lat, p.lon]
+                )
+
+            );
+
+
+        map.fitBounds(
+
+            bounds,
+
+            {
+
+                padding: [
+                    40,
+                    40
+                ]
+
+            }
+
+        );
+
+    }
+
+
+    // ========================================================
+    // 12. ADD LEGEND
+    // ========================================================
+
+    addLegend();
+
+
+    // ========================================================
+    // 13. ADD INFORMATION BOX
+    // ========================================================
+
+    addInfo();
+
+}
+
+
+// ============================================================
+// 14. LEGEND
+// ============================================================
+
+function addLegend() {
+
+
+    const legend =
+        L.control({
+
+            position:
+                'bottomright'
+
+        });
+
+
+    legend.onAdd = function() {
+
+
+        const div =
+            L.DomUtil.create(
+                'div',
+                'legend'
+            );
+
+
+        div.innerHTML = `
+
+            <div class="legend-title">
+
+                Number of papers
+
+            </div>
+
+
+            <div class="gradient-bar"></div>
+
+
+            <div class="legend-labels">
+
+                <span>0</span>
+
+                <span>10</span>
+
+                <span>25</span>
+
+                <span>50</span>
+
+                <span>100+</span>
 
             </div>
 
         `;
 
-    });
+
+        return div;
+
+    };
 
 
-    return div;
+    legend.addTo(map);
 
-};
+}
 
 
-legend.addTo(map);
+// ============================================================
+// 15. INFORMATION BOX
+// ============================================================
+
+function addInfo() {
+
+
+    const info =
+        L.control({
+
+            position:
+                'bottomleft'
+
+        });
+
+
+    info.onAdd = function() {
+
+
+        const div =
+            L.DomUtil.create(
+                'div',
+                'info-box'
+            );
+
+
+        div.innerHTML = `
+
+            <b>Map interpretation</b>
+
+            <br>
+
+            Blue/green = lower number of studies
+
+            <br>
+
+            Yellow/orange = higher number
+
+            <br>
+
+            Red = highest concentration
+
+        `;
+
+
+        return div;
+
+    };
+
+
+    info.addTo(map);
+
+}
+
+
+// ============================================================
+// 16. SCALE BAR
+// ============================================================
+
+L.control.scale({
+
+    imperial: false,
+
+    metric: true
+
+}).addTo(map);
 
 
 </script>
+
 
 </body>
 
