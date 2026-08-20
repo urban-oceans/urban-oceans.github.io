@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Non-agricultural Studies Map</title>
+
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <style>
+
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+
+        .legend {
+            background: white;
+            padding: 10px;
+            line-height: 1.5;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+
+        .legend-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div id="map"></div>
+
+
+<!-- Leaflet JavaScript -->
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+
+<script>
+
+// ============================================================
+// 1. CREATE MAP
+// ============================================================
+
+const map = L.map('map').setView(
+    [49.5, -123.5],
+    7
+);
+
+
+// ============================================================
+// 2. BASE MAP
+// ============================================================
+
+L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+        attribution:
+            '&copy; OpenStreetMap contributors'
+    }
+).addTo(map);
+
+
+// ============================================================
+// 3. COLOR FUNCTION
+// ============================================================
+
+function getColor(value) {
+
+    if (value >= 100) return '#800026';
+    if (value >= 50)  return '#BD0026';
+    if (value >= 25)  return '#E31A1C';
+    if (value >= 10)  return '#FC4E2A';
+    if (value >= 5)   return '#FD8D3C';
+    if (value >= 2)   return '#FEB24C';
+
+    return '#FED976';
+}
+
+
+// ============================================================
+// 4. RADIUS FUNCTION
+// ============================================================
+
+function getRadius(value) {
+
+    // Square-root scaling makes the circles
+    // visually proportional to the number of papers.
+
+    return Math.max(
+        4,
+        Math.sqrt(value) * 3
+    );
+}
+
+
+// ============================================================
+// 5. LOAD CSV
+// ============================================================
+
+fetch('geodata.csv')
+
+    .then(response => response.text())
+
+    .then(csv => {
+
+        const rows = csv.trim().split('\n');
+
+        // First row = headers
+        const headers = rows[0]
+            .split(',')
+            .map(h => h.trim());
+
+
+        // ----------------------------------------------------
+        // Convert CSV rows into objects
+        // ----------------------------------------------------
+
+        const data = rows.slice(1).map(row => {
+
+            const values = row.split(',');
+
+            let obj = {};
+
+            headers.forEach(
+                (header, index) => {
+
+                    obj[header] =
+                        values[index]
+                        ? values[index].trim()
+                        : '';
+
+                }
+            );
+
+            return obj;
+
+        });
+
+
+        // ----------------------------------------------------
+        // Plot points
+        // ----------------------------------------------------
+
+        data.forEach(d => {
+
+            const lat =
+                parseFloat(d['Latitude']);
+
+            const lon =
+                parseFloat(d['Longitude']);
+
+            const value =
+                parseFloat(d['Value (non-ag)']);
+
+
+            // Skip invalid rows
+            if (
+                isNaN(lat) ||
+                isNaN(lon) ||
+                isNaN(value)
+            ) {
+                return;
+            }
+
+
+            // ------------------------------------------------
+            // Circle marker
+            // ------------------------------------------------
+
+            const circle =
+                L.circleMarker(
+                    [lat, lon],
+                    {
+
+                        radius:
+                            getRadius(value),
+
+                        fillColor:
+                            getColor(value),
+
+                        color:
+                            '#333',
+
+                        weight:
+                            1,
+
+                        opacity:
+                            1,
+
+                        fillOpacity:
+                            0.7
+
+                    }
+                );
+
+
+            // ------------------------------------------------
+            // Popup
+            // ------------------------------------------------
+
+            circle.bindPopup(`
+
+                <b>${d['Location of study']}</b>
+
+                <br><br>
+
+                <b>Number of papers:</b>
+                ${value}
+
+                <br>
+
+                <b>Log value:</b>
+                ${d['log Value (non-ag)']}
+
+            `);
+
+
+            circle.addTo(map);
+
+        });
+
+    });
+
+
+// ============================================================
+// 6. LEGEND
+// ============================================================
+
+const legend =
+    L.control({position: 'bottomright'});
+
+
+legend.onAdd = function() {
+
+    const div =
+        L.DomUtil.create(
+            'div',
+            'legend'
+        );
+
+
+    div.innerHTML =
+        '<div class="legend-title">' +
+        'Number of papers' +
+        '</div>';
+
+
+    const values = [
+        1,
+        2,
+        5,
+        10,
+        25,
+        50,
+        100
+    ];
+
+
+    values.forEach(value => {
+
+        div.innerHTML += `
+
+            <div>
+
+                <span style="
+                    display:inline-block;
+                    width:12px;
+                    height:12px;
+                    background:${getColor(value)};
+                    border:1px solid #333;
+                    border-radius:50%;
+                    margin-right:5px;
+                "></span>
+
+                ${value}
+
+            </div>
+
+        `;
+
+    });
+
+
+    return div;
+
+};
+
+
+legend.addTo(map);
+
+
+</script>
+
+</body>
+
+</html>
