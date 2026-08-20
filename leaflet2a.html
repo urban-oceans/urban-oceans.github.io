@@ -1,19 +1,14 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
 
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <title>
-        Non-agricultural Studies Map
-    </title>
+    <title>Spatial Distribution of Studies</title>
 
 
     <!-- =====================================================
@@ -23,65 +18,177 @@
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    >
+    />
 
-
-    <!-- =====================================================
-         PAGE STYLE
-         ===================================================== -->
 
     <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
 
         html,
         body {
 
-            width: 100%;
-            height: 100%;
-
             margin: 0;
             padding: 0;
 
-        }
-
-
-        #map {
-
             width: 100%;
-            height: 100vh;
+            height: 100%;
+
+            font-family: Arial, Helvetica, sans-serif;
 
         }
 
 
         /* =================================================
-           TITLE
+           HEADER
            ================================================= */
 
-        .map-title {
+        #header {
 
-            position: absolute;
+            height: 90px;
 
-            top: 15px;
-            left: 55px;
+            background: white;
 
-            z-index: 1000;
+            border-bottom: 1px solid #d5d5d5;
 
-            background: rgba(255,255,255,0.94);
+            padding: 18px 30px;
 
-            padding: 10px 15px;
+        }
 
-            border-radius: 5px;
 
-            box-shadow:
-                0 1px 5px rgba(0,0,0,0.3);
+        #header h1 {
 
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
+            margin: 0;
 
-            font-size: 18px;
+            font-size: 24px;
+
+            font-weight: 600;
+
+            color: #222;
+
+        }
+
+
+        #header p {
+
+            margin: 5px 0 0 0;
+
+            font-size: 13px;
+
+            color: #666;
+
+        }
+
+
+        /* =================================================
+           MAIN
+           ================================================= */
+
+        #main {
+
+            display: flex;
+
+            width: 100%;
+
+            height: calc(100vh - 90px);
+
+        }
+
+
+        /* =================================================
+           SIDEBAR
+           ================================================= */
+
+        #sidebar {
+
+            width: 300px;
+
+            min-width: 300px;
+
+            height: 100%;
+
+            background: #ffffff;
+
+            border-right: 1px solid #ddd;
+
+            padding: 22px;
+
+            overflow-y: auto;
+
+        }
+
+
+        .section {
+
+            margin-bottom: 25px;
+
+        }
+
+
+        .section h2 {
+
+            font-size: 15px;
+
+            margin: 0 0 10px 0;
+
+            padding-bottom: 7px;
+
+            border-bottom: 1px solid #eee;
+
+            color: #333;
+
+        }
+
+
+        .section p {
+
+            font-size: 13px;
+
+            line-height: 1.55;
+
+            color: #555;
+
+            margin: 0;
+
+        }
+
+
+        /* =================================================
+           STATISTICS
+           ================================================= */
+
+        .stat {
+
+            background: #f5f6f7;
+
+            border-radius: 6px;
+
+            padding: 12px;
+
+            margin-top: 8px;
+
+        }
+
+
+        .stat-number {
+
+            font-size: 23px;
 
             font-weight: bold;
+
+            color: #333;
+
+        }
+
+
+        .stat-label {
+
+            font-size: 11px;
+
+            color: #777;
 
         }
 
@@ -90,48 +197,20 @@
            LEGEND
            ================================================= */
 
-        .legend {
+        .gradient {
 
-            background:
-                rgba(255,255,255,0.95);
+            width: 100%;
 
-            padding: 12px;
+            height: 18px;
 
-            border-radius: 5px;
+            margin-top: 10px;
 
-            box-shadow:
-                0 1px 5px rgba(0,0,0,0.3);
+            border-radius: 3px;
 
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
-
-            font-size: 12px;
-
-            line-height: 1.4;
-
-        }
-
-
-        .legend-title {
-
-            font-weight: bold;
-
-            font-size: 13px;
-
-            margin-bottom: 8px;
-
-        }
-
-
-        .gradient-bar {
-
-            width: 220px;
-
-            height: 16px;
+            border: 1px solid #888;
 
             background: linear-gradient(
+
                 to right,
 
                 #30123B 0%,
@@ -156,10 +235,6 @@
 
             );
 
-            border: 1px solid #555;
-
-            border-radius: 3px;
-
         }
 
 
@@ -169,9 +244,51 @@
 
             justify-content: space-between;
 
-            width: 220px;
+            font-size: 10px;
 
-            margin-top: 3px;
+            color: #777;
+
+            margin-top: 4px;
+
+        }
+
+
+        /* =================================================
+           MAP
+           ================================================= */
+
+        #map {
+
+            flex: 1;
+
+            height: 100%;
+
+            min-width: 0;
+
+        }
+
+
+        /* =================================================
+           ERROR MESSAGE
+           ================================================= */
+
+        #status {
+
+            margin-top: 10px;
+
+            padding: 10px;
+
+            background: #fff4f4;
+
+            color: #a00000;
+
+            border: 1px solid #e5baba;
+
+            border-radius: 5px;
+
+            font-size: 12px;
+
+            display: none;
 
         }
 
@@ -182,44 +299,55 @@
 
         .popup-title {
 
-            font-size: 15px;
-
             font-weight: bold;
+
+            font-size: 15px;
 
             margin-bottom: 8px;
 
         }
 
 
-        .popup-value {
+        .popup-row {
 
-            font-size: 14px;
+            margin-top: 4px;
+
+            font-size: 13px;
 
         }
 
 
         /* =================================================
-           INFO BOX
+           MOBILE
            ================================================= */
 
-        .info-box {
+        @media (max-width: 800px) {
 
-            background:
-                rgba(255,255,255,0.95);
+            #main {
 
-            padding: 10px 12px;
+                flex-direction: column;
 
-            border-radius: 5px;
+            }
 
-            box-shadow:
-                0 1px 5px rgba(0,0,0,0.3);
+            #sidebar {
 
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
+                width: 100%;
 
-            font-size: 12px;
+                min-width: 0;
+
+                height: 250px;
+
+                border-right: none;
+
+                border-bottom: 1px solid #ddd;
+
+            }
+
+            #map {
+
+                height: calc(100% - 250px);
+
+            }
 
         }
 
@@ -232,25 +360,161 @@
 
 
 <!-- =======================================================
-     MAP TITLE
+     HEADER
      ======================================================= -->
 
-<div class="map-title">
+<div id="header">
 
-    Non-agricultural research studies
+    <h1>
+        Spatial Distribution of Non-Agricultural Studies
+    </h1>
+
+    <p>
+        Geographic distribution of studies identified in the literature review
+    </p>
 
 </div>
 
 
+
 <!-- =======================================================
-     MAP
+     MAIN
      ======================================================= -->
 
-<div id="map"></div>
+<div id="main">
+
+
+    <!-- ===================================================
+         SIDEBAR
+         =================================================== -->
+
+    <div id="sidebar">
+
+
+        <div class="section">
+
+            <h2>
+                About this map
+            </h2>
+
+            <p>
+
+                This interactive map shows the geographic
+                distribution of non-agricultural studies.
+
+                The spectral heatmap represents the number
+                of papers associated with each location.
+
+            </p>
+
+        </div>
+
+
+        <div class="section">
+
+            <h2>
+                Data summary
+            </h2>
+
+
+            <div class="stat">
+
+                <div
+                    class="stat-number"
+                    id="locationCount"
+                >
+                    —
+                </div>
+
+                <div class="stat-label">
+                    Study locations
+                </div>
+
+            </div>
+
+
+            <div class="stat">
+
+                <div
+                    class="stat-number"
+                    id="studyCount"
+                >
+                    —
+                </div>
+
+                <div class="stat-label">
+                    Studies represented
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="section">
+
+            <h2>
+                Study intensity
+            </h2>
+
+            <p>
+
+                Lower study counts are shown in blue and
+                green. Higher study counts transition through
+                yellow and orange to red.
+
+            </p>
+
+
+            <div class="gradient"></div>
+
+
+            <div class="legend-labels">
+
+                <span>Low</span>
+
+                <span>High</span>
+
+            </div>
+
+        </div>
+
+
+        <div class="section">
+
+            <h2>
+                Data
+            </h2>
+
+            <p>
+
+                Values represent the number of non-agricultural
+                papers associated with each geographic location.
+
+            </p>
+
+
+            <div id="status"></div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- ===================================================
+         MAP
+         =================================================== -->
+
+    <div id="map"></div>
+
+
+</div>
+
 
 
 <!-- =======================================================
-     LEAFLET JAVASCRIPT
+     LEAFLET JS
      ======================================================= -->
 
 <script
@@ -259,11 +523,11 @@
 
 
 <!-- =======================================================
-     LEAFLET HEAT PLUGIN
+     LEAFLET HEAT JS
      ======================================================= -->
 
 <script
-    src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js">
+    src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js">
 </script>
 
 
@@ -276,54 +540,61 @@
 </script>
 
 
+
 <script>
 
 
 // ============================================================
-// 1. CREATE MAP
+// SHOW ERROR
 // ============================================================
 
-const map = L.map('map', {
+function showError(message) {
 
-    zoomControl: true,
+    const box =
+        document.getElementById("status");
 
-    preferCanvas: true
+    box.style.display = "block";
 
-});
+    box.innerHTML = message;
+
+}
+
 
 
 // ============================================================
-// 2. BASE MAP — SATELLITE
+// CHECK LEAFLET
 // ============================================================
 
-const satellite = L.tileLayer(
+if (typeof L === "undefined") {
 
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    showError(
+        "Leaflet could not be loaded."
+    );
+
+}
+
+
+
+// ============================================================
+// CREATE MAP
+// ============================================================
+
+const map = L.map("map");
+
+
+
+// ============================================================
+// OPEN STREET MAP BASE
+// ============================================================
+
+const osm = L.tileLayer(
+
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 
     {
 
         attribution:
-            'Tiles &copy; Esri',
-
-        maxZoom: 18
-
-    }
-
-);
-
-
-// ============================================================
-// 3. BASE MAP — OPENSTREETMAP
-// ============================================================
-
-const street = L.tileLayer(
-
-    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-
-    {
-
-        attribution:
-            '&copy; OpenStreetMap contributors',
+            "&copy; OpenStreetMap contributors",
 
         maxZoom: 19
 
@@ -332,96 +603,114 @@ const street = L.tileLayer(
 );
 
 
-// Start with satellite imagery
+osm.addTo(map);
 
-satellite.addTo(map);
 
 
 // ============================================================
-// 4. BASE MAP CONTROL
+// SATELLITE BASE
 // ============================================================
 
-const baseMaps = {
+const satellite = L.tileLayer(
 
-    "Satellite": satellite,
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
 
-    "Street map": street
+    {
 
-};
+        attribution:
+            "Tiles &copy; Esri",
 
+        maxZoom: 18
+
+    }
+
+);
+
+
+
+// ============================================================
+// BASE MAP CONTROL
+// ============================================================
 
 L.control.layers(
-    baseMaps,
-    null,
+
     {
-        position: 'topright'
+
+        "Street map": osm,
+
+        "Satellite": satellite
+
     }
+
 ).addTo(map);
 
 
+
 // ============================================================
-// 5. SPECTRAL COLOR GRADIENT
+// INITIAL MAP VIEW
+// ============================================================
+
+map.setView(
+
+    [49.3, -123.3],
+
+    7
+
+);
+
+
+
+// ============================================================
+// SPECTRAL COLOR SCALE
 // ============================================================
 
 const spectralGradient = {
 
-    0.00: '#30123B',
+    0.00: "#30123B",
 
-    0.10: '#372A8C',
+    0.10: "#372A8C",
 
-    0.20: '#3B4CC0',
+    0.20: "#3B4CC0",
 
-    0.30: '#2C7BB6',
+    0.30: "#2C7BB6",
 
-    0.40: '#00A6CA',
+    0.40: "#00A6CA",
 
-    0.50: '#00C878',
+    0.50: "#00C878",
 
-    0.60: '#00CC66',
+    0.60: "#00CC66",
 
-    0.70: '#7FD34E',
+    0.70: "#7FD34E",
 
-    0.80: '#FDE725',
+    0.80: "#FDE725",
 
-    0.88: '#FCA636',
+    0.88: "#FCA636",
 
-    0.94: '#F46D43',
+    0.94: "#F46D43",
 
-    0.98: '#D73027',
+    0.98: "#D73027",
 
-    1.00: '#8B0000'
-
-};
-
-
-// ============================================================
-// 6. HEATMAP SETTINGS
-// ============================================================
-
-const heatOptions = {
-
-    radius: 45,
-
-    blur: 38,
-
-    maxZoom: 10,
-
-    minOpacity: 0.25,
-
-    max: 122,
-
-    gradient: spectralGradient
+    1.00: "#8B0000"
 
 };
 
 
+
 // ============================================================
-// 7. LOAD CSV
+// HEATMAP LAYER
+// ============================================================
+
+let heatLayer = null;
+
+
+
+// ============================================================
+// LOAD CSV
 // ============================================================
 
 Papa.parse(
 
-    'geodata.csv',
+    "data.csv",
 
     {
 
@@ -431,22 +720,37 @@ Papa.parse(
 
         skipEmptyLines: true,
 
+
         complete: function(results) {
 
-            createMap(results.data);
+            console.log(
+                "CSV loaded:",
+                results.data
+            );
+
+            makeMap(
+                results.data
+            );
 
         },
+
 
         error: function(error) {
 
             console.error(
-                "Could not load data.csv:",
+                "CSV ERROR:",
                 error
             );
 
-            alert(
+
+            showError(
+
                 "Could not load data.csv. " +
-                "Make sure it is in the same folder as index.html."
+
+                "Make sure data.csv is in the " +
+
+                "same folder as index.html."
+
             );
 
         }
@@ -456,83 +760,85 @@ Papa.parse(
 );
 
 
+
 // ============================================================
-// 8. CREATE MAP DATA
+// MAKE MAP
 // ============================================================
 
-function createMap(data) {
+function makeMap(data) {
 
-
-    // --------------------------------------------------------
-    // Heatmap points
-    // --------------------------------------------------------
 
     const heatPoints = [];
 
+    const points = [];
 
-    // --------------------------------------------------------
-    // Valid coordinates
-    // --------------------------------------------------------
-
-    const validPoints = [];
+    let totalStudies = 0;
 
 
-    // --------------------------------------------------------
-    // Loop through CSV
-    // --------------------------------------------------------
 
-    data.forEach(function(d) {
+    // ========================================================
+    // READ DATA
+    // ========================================================
+
+    data.forEach(function(row) {
 
 
         const lat =
             parseFloat(
-                d["Latitude"]
+                row["Latitude"]
             );
 
 
         const lon =
             parseFloat(
-                d["Longitude"]
+                row["Longitude"]
             );
 
 
         const value =
             parseFloat(
-                d["Value (non-ag)"]
+                row["Value (non-ag)"]
             );
 
 
         const logValue =
             parseFloat(
-                d["log Value (non-ag)"]
+                row["log Value (non-ag)"]
             );
 
 
         const location =
-            d["Location of study"];
+            row["Location of study"];
+
 
 
         // ----------------------------------------------------
-        // Skip invalid records
+        // CHECK DATA
         // ----------------------------------------------------
 
         if (
 
-            isNaN(lat) ||
+            Number.isNaN(lat) ||
 
-            isNaN(lon) ||
+            Number.isNaN(lon) ||
 
-            isNaN(value)
+            Number.isNaN(value)
 
         ) {
+
+            console.warn(
+                "Skipping row:",
+                row
+            );
 
             return;
 
         }
 
 
+
         // ----------------------------------------------------
-        // HEATMAP
+        // HEAT POINT
         // ----------------------------------------------------
 
         heatPoints.push([
@@ -546,112 +852,176 @@ function createMap(data) {
         ]);
 
 
+
         // ----------------------------------------------------
-        // SAVE VALID POINT
+        // SAVE POINT
         // ----------------------------------------------------
 
-        validPoints.push({
+        points.push({
 
-            lat: lat,
+            lat:
+                lat,
 
-            lon: lon,
+            lon:
+                lon,
 
-            value: value,
+            value:
+                value,
 
-            logValue: logValue,
+            logValue:
+                logValue,
 
-            location: location
+            location:
+                location
 
         });
+
+
+
+        totalStudies += value;
+
 
     });
 
 
+
     // ========================================================
-    // 9. CREATE HEATMAP
+    // UPDATE SIDEBAR
     // ========================================================
 
-    const heatLayer =
+    document.getElementById(
+        "locationCount"
+    ).innerText =
+        points.length;
 
-        L.heatLayer(
 
-            heatPoints,
+    document.getElementById(
+        "studyCount"
+    ).innerText =
+        totalStudies.toLocaleString();
 
-            heatOptions
 
+
+    // ========================================================
+    // CREATE HEATMAP
+    // ========================================================
+
+    if (
+
+        typeof L.heatLayer ===
+        "undefined"
+
+    ) {
+
+        showError(
+            "The Leaflet heatmap plugin could not be loaded."
         );
+
+        return;
+
+    }
+
+
+
+    heatLayer = L.heatLayer(
+
+        heatPoints,
+
+        {
+
+            radius: 45,
+
+            blur: 35,
+
+            maxZoom: 10,
+
+            minOpacity: 0.25,
+
+            max: 122,
+
+            gradient:
+                spectralGradient
+
+        }
+
+    );
 
 
     heatLayer.addTo(map);
 
 
+
     // ========================================================
-    // 10. INVISIBLE/TRANSPARENT MARKERS
-    //     These allow clicking individual locations
+    // CLICKABLE LOCATIONS
     // ========================================================
 
-    validPoints.forEach(function(d) {
+    points.forEach(function(point) {
 
 
         const marker =
-
             L.circleMarker(
 
-                [d.lat, d.lon],
+                [
+                    point.lat,
+                    point.lon
+                ],
 
                 {
 
-                    radius: 7,
+                    radius: 6,
 
-                    stroke: false,
+                    color: "#ffffff",
 
-                    fillColor: '#ffffff',
+                    weight: 1,
+
+                    fillColor: "#ffffff",
 
                     fillOpacity: 0.01,
 
-                    interactive: true
+                    opacity: 0.01
 
                 }
 
             );
 
 
-        // ----------------------------------------------------
-        // Popup
-        // ----------------------------------------------------
 
-        let logText = "";
+        let logText = "—";
 
-        if (!isNaN(d.logValue)) {
+
+        if (
+            !Number.isNaN(
+                point.logValue
+            )
+        ) {
 
             logText =
-                d.logValue.toFixed(3);
+                point.logValue.toFixed(3);
 
         }
+
 
 
         marker.bindPopup(`
 
             <div class="popup-title">
 
-                ${d.location}
+                ${point.location}
 
             </div>
 
 
-            <div class="popup-value">
+            <div class="popup-row">
 
                 <b>Number of papers:</b>
-
-                ${d.value}
+                ${point.value}
 
             </div>
 
 
-            <div class="popup-value">
+            <div class="popup-row">
 
                 <b>Log value:</b>
-
                 ${logText}
 
             </div>
@@ -661,21 +1031,26 @@ function createMap(data) {
 
         marker.addTo(map);
 
+
     });
 
 
+
     // ========================================================
-    // 11. FIT MAP TO DATA
+    // FIT MAP TO DATA
     // ========================================================
 
-    if (validPoints.length > 0) {
+    if (points.length > 0) {
 
 
         const bounds =
             L.latLngBounds(
 
-                validPoints.map(
-                    p => [p.lat, p.lon]
+                points.map(
+                    p => [
+                        p.lat,
+                        p.lon
+                    ]
                 )
 
             );
@@ -687,10 +1062,8 @@ function createMap(data) {
 
             {
 
-                padding: [
-                    40,
-                    40
-                ]
+                padding:
+                    [30, 30]
 
             }
 
@@ -699,154 +1072,66 @@ function createMap(data) {
     }
 
 
-    // ========================================================
-    // 12. ADD LEGEND
-    // ========================================================
-
-    addLegend();
-
 
     // ========================================================
-    // 13. ADD INFORMATION BOX
+    // SCALE BAR
     // ========================================================
 
-    addInfo();
+    L.control.scale({
+
+        metric: true,
+
+        imperial: false
+
+    }).addTo(map);
+
+
+
+    // ========================================================
+    // FORCE MAP REDRAW
+    // ========================================================
+
+    setTimeout(
+
+        function() {
+
+            map.invalidateSize();
+
+        },
+
+        500
+
+    );
 
 }
 
 
-// ============================================================
-// 14. LEGEND
-// ============================================================
-
-function addLegend() {
-
-
-    const legend =
-        L.control({
-
-            position:
-                'bottomright'
-
-        });
-
-
-    legend.onAdd = function() {
-
-
-        const div =
-            L.DomUtil.create(
-                'div',
-                'legend'
-            );
-
-
-        div.innerHTML = `
-
-            <div class="legend-title">
-
-                Number of papers
-
-            </div>
-
-
-            <div class="gradient-bar"></div>
-
-
-            <div class="legend-labels">
-
-                <span>0</span>
-
-                <span>10</span>
-
-                <span>25</span>
-
-                <span>50</span>
-
-                <span>100+</span>
-
-            </div>
-
-        `;
-
-
-        return div;
-
-    };
-
-
-    legend.addTo(map);
-
-}
-
 
 // ============================================================
-// 15. INFORMATION BOX
+// FORCE REDRAW AFTER PAGE LOAD
 // ============================================================
 
-function addInfo() {
+window.addEventListener(
 
+    "load",
 
-    const info =
-        L.control({
+    function() {
 
-            position:
-                'bottomleft'
+        setTimeout(
 
-        });
+            function() {
 
+                map.invalidateSize();
 
-    info.onAdd = function() {
+            },
 
+            500
 
-        const div =
-            L.DomUtil.create(
-                'div',
-                'info-box'
-            );
+        );
 
+    }
 
-        div.innerHTML = `
-
-            <b>Map interpretation</b>
-
-            <br>
-
-            Blue/green = lower number of studies
-
-            <br>
-
-            Yellow/orange = higher number
-
-            <br>
-
-            Red = highest concentration
-
-        `;
-
-
-        return div;
-
-    };
-
-
-    info.addTo(map);
-
-}
-
-
-// ============================================================
-// 16. SCALE BAR
-// ============================================================
-
-L.control.scale({
-
-    imperial: false,
-
-    metric: true
-
-}).addTo(map);
-
+);
 
 </script>
 
