@@ -157,7 +157,7 @@ let csvHeaders = [];
       });
 
       mergeCsvTagsIntoJson();
-      #showCsvMatchReport();
+      showCsvMatchReport();
       updateLibrary();
     });
 }
@@ -192,9 +192,21 @@ function mergeCsvTagsIntoJson() {
    CSV ADDITION — REPORT
 ---------------------------- */
 
+
 function showCsvMatchReport() {
     console.log("=== CSV → JSON Title Match Report ===");
 
+    if (unmatchedCsvTitles.length === 0) {
+        console.log("All CSV titles matched JSON entries.");
+    } else {
+        console.log("Unmatched CSV Titles:");
+        unmatchedCsvTitles.forEach(t => console.log(" - " + t));
+    }
+}
+
+
+/* -
+    console.log("=== CSV → JSON Title Match Report ===");
     if (unmatchedCsvTitles.length === 0) {
         console.log("All CSV titles matched JSON entries.");
     } else {
@@ -221,7 +233,7 @@ function showCsvMatchReport() {
 
     document.body.insertBefore(reportDiv, document.body.firstChild);
 }
-
+- */
 
 /* ---------------------------
    YOUR ORIGINAL FUNCTIONS
