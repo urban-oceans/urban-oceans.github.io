@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Ocean Research Lab</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:w500&display=swap
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:'Inter',sans-serif;
+    color:#284b63;
+    background:#f8fdff;
+}
+
+/* NAVIGATION */
+
+header{
+    position:fixed;
+    width:100%;
+    top:0;
+    left:0;
+
+    background:rgba(255,255,255,0.15);
+    backdrop-filter:blur(15px);
+
+    z-index:1000;
+}
+
+nav{
+    max-width:1300px;
+    margin:auto;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:22px 40px;
+}
+
+.logo{
+    font-size:1.4rem;
+    font-weight:600;
+    letter-spacing:2px;
+    color:white;
+}
+
+nav ul{
+    display:flex;
+    gap:35px;
+    list-style:none;
+}
+
+nav a{
+    color:white;
+    text-decoration:none;
+    font-weight:500;
+}
+
+/* HERO */
+
+.hero{
+    height:100vh;
+
+    background:
+    linear-gradient(
+    rgba(18,73,99,.35),
+    rgba(18,73,99,.50)),
+    url("https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=2000&q=80");
+
+    background-size:cover;
+    background-position:center;
+
+    display:flex;
+    align-items:center;
+}
+
+.hero-content{
+    max-width:700px;
+    margin-left:8%;
+    color:white;
+}
+
+.hero-content h1{
+    font-family:'Playfair Display',serif;
+    font-size:5rem;
+    line-height:1.1;
+    font-weight:400;
+}
+
+.hero-content p{
+    margin-top:20px;
+    font-size:1.2rem;
+    line-height:1.8;
+    max-width:600px;
+}
+
+.hero-btn{
+    display:inline-block;
+    margin-top:35px;
+
+    padding:14px 35px;
+
+    background:white;
+    color:#124963;
+
+    text-decoration:none;
+    border-radius:100px;
+
+    transition:.3s;
+}
+
+.hero-btn:hover{
+    transform:translateY(-3px);
+}
+
+/* WAVE */
+
+.wave{
+    margin-top:-5px;
+}
+
+.wave svg{
+    display:block;
+    width:100%;
+}
+
+/* INTRO */
+
+.about{
+    padding:100px 10%;
+    text-align:center;
+    background:white;
+}
+
+.about h2{
+    font-family:'Playfair Display',serif;
+    font-size:3rem;
+    margin-bottom:20px;
+}
+
+.about p{
+    max-width:900px;
+    margin:auto;
+    line-height:1.8;
+    color:#5f7b88;
+}
+
+/* CARDS */
+
+.section-title{
+    text-align:center;
+    font-family:'Playfair Display',serif;
+    font-size:3rem;
+
+    margin-bottom:60px;
+}
+
+.research{
+    padding:100px 8%;
+    background:#edf9fc;
+}
+
+.card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:30px;
+}
+
+.card{
+    background:white;
+
+    border-radius:25px;
+
+    overflow:hidden;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-8px);
+}
+
+.card img{
+    width:100%;
+    height:240px;
+    object-fit:cover;
+}
+
+.card-content{
+    padding:25px;
+}
+
+.card h3{
+    margin-bottom:10px;
+}
+
+/* STATS */
+
+.stats{
+    padding:100px 8%;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:30px;
+    text-align:center;
+}
+
+.stat{
+    padding:40px;
+}
+
+.stat h3{
+    font-size:3rem;
+    color:#2a9d8f;
+}
+
+.stat p{
+    margin-top:10px;
+}
+
+/* CTA */
+
+.cta{
+    background:
+    linear-gradient(
+    rgba(28,97,121,.85),
+    rgba(28,97,121,.85)),
+    url('https://images.unsplash.com/photo-1484291470158-b8f8d608850d');
+
+    background-size:cover;
+    background-position:center;
+
+    color:white;
+
+    text-align:center;
+
+    padding:120px 8%;
+}
+
+.cta h2{
+    font-family:'Playfair Display',serif;
+    font-size:3rem;
+}
+
+.cta p{
+    margin:20px auto;
+    max-width:700px;
+}
+
+.cta a{
+    display:inline-block;
+    margin-top:20px;
+
+    background:white;
+    color:#124963;
+
+    text-decoration:none;
+
+    padding:14px 30px;
+    border-radius:50px;
+}
+
+/* FOOTER */
+
+footer{
+    background:#0f3444;
+    color:white;
+    text-align:center;
+    padding:30px;
+}
+
+</style>
+</head>
+<body>
+
+<header>
+<nav>
+
+<div class="logo">OCEAN LAB</div>
+
+<ul>
+<li><a href="index.html">Home</afindings.htmlFindings</a></li>
+<li>contact.htmlContact</a></li>
+</ul>
+
+</nav>
+</header>
+
+<section class="hero">
+
+<div class="hero-content">
+
+<h1>
+Exploring the
+Living Ocean
+</h1>
+
+<p>
+Advancing marine conservation through research,
+discovery, and community engagement to protect the
+future of our oceans.
+</p>
+
+findings.html
+Explore Findings
+</a>
+
+</div>
+
+</section>
+
+<div class="wave">
+<svg viewBox="0 0 1440 200">
+<path fill="#ffffff"
+d="M0,96L80,106.7C160,117,320,139,480,138.7C640,139,800,117,960,106.7C1120,96,1280,96,1360,96L1440,96V200H0Z">
+</path>
+</svg>
+</div>
+
+<section class="about">
+
+<h2>Our Mission</h2>
+
+<p>
+We study marine ecosystems, biodiversity, and environmental
+change to support informed conservation decisions and foster
+a deeper connection between people and the ocean.
+</p>
+
+</section>
+
+<section class="research">
+
+<h2 class="section-title">Featured Research</h2>
+
+<div class="card-grid">
+
+<div class="card">
+<img src="https://images.unsplash.com/photo-1544551763-46a013bbformat&fit=crop&w=1200&q=80
+
+<div class="card-content">
+<h3>Coral Reef Recovery</h3>
+<p>Monitoring ecosystem resilience across vulnerable reef habitats.</p>
+</div>
+</div>
+
+<div class="card">
+<img src="https://images.unsplash.com/photo-1560275619-4662e36fa65c?auto=format&fit=crop&w=120iv class="card-content">
+<h3>Marine Mammals</h3>
+<p>Understanding migration patterns and habitat use.</p>
+</div>
+</div>
+
+<div class="card">
+<img src="https://images.unsplash.com/photo-1518391846015-55a9cc003ormat&fit=crop&w=1200&q=80
+
+<div class="card-content">
+<h3>Kelp Forests</h3>
+<p>Protecting essential coastal ecosystems and biodiversity.</p>
+</div>
+</div>
+
+</div>
+
+</section>
+
+<section class="stats">
+
+<div class="stat">
+<h3>40+</h3>
+<p>Research Projects</p>
+</div>
+
+<div class="stat">
+<h3>250+</h3>
+<p>Species Studied</p>
+</div>
+
+<div class="stat">
+<h3>15</h3>
+<p>Global Partnerships</p>
+</div>
+
+<div class="stat">
+<h3>12K+</h3>
+<p>Ocean Data Records</p>
+</div>
+
+</section>
+
+<section class="cta">
+
+<h2>Discover Our Findings</h2>
+
+<p>
+Explore current research, publications, and conservation initiatives.
+</p>
+
+findings.htmlView Findings</a>
+
+</section>
+
+<footer>
+© 2026 Ocean Research Lab
+</footer>
+
+</body>
+</html>
