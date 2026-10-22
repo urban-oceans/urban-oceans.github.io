@@ -1,1 +1,343 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Urban Oceans - Pelagic Ecosystems Lab UBC</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Inter", Arial, sans-serif;
+      background: linear-gradient(to bottom, #e6f1f5, #d3e4ea, #c0d7e0);
+      color: #1f2a30;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #2a5c7b, #3b7d98);
+      padding: 20px 40px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: white;
+      letter-spacing: 0.5px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #b7cbd4;
+    }
+
+    .tabs button {
+      padding: 16px 30px;
+      border: none;
+      background: none;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+      border-bottom: 3px solid transparent;
+      color: #1f2a30;
+    }
+
+    .tabs button:hover {
+      color: #2a5c7b;
+    }
+
+    .tabs button.active {
+      color: #2a5c7b;
+      border-bottom: 3px solid #2a5c7b;
+    }
+
+    /* Tab Content */
+    .content {
+      padding: 40px;
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Research Photos
+       These photos are used only in the Research tab. */
+    .research-photos {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+      margin: 25px 0;
+    }
+
+    .research-photos img {
+      display: block;
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      border: 1px solid #c8dbe3;
+    }
+
+    /* Project Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, #ffffff, #f3f8fa);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: 0.3s;
+      border: 1px solid #c8dbe3;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      border-color: #9bbac7;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      color: #2a5c7b;
+    }
+
+    a {
+      color: #2a5c7b;
+      text-decoration: none;
+    }
+
+    /* Mobile Layout */
+    @media (max-width: 600px) {
+      header {
+        padding: 20px;
+        font-size: 1.2rem;
+      }
+
+      .content {
+        padding: 20px;
+      }
+
+      .tabs button {
+        padding: 12px 14px;
+        font-size: 0.9rem;
+      }
+
+      .research-photos {
+        grid-template-columns: 1fr;
+      }
+
+      .research-photos img {
+        height: 250px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header>Urban Oceans - Pelagic Ecosystems Lab UBC</header>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs">
+
+    <button
+      class="tab-button active"
+      onclick="openTab('about', this)">
+      About
+    </button>
+
+    <button
+      class="tab-button"
+      onclick="window.location.href='https://urban-oceans.github.io/articlev2.html'">
+      Literature Library
+    </button>
+
+    <button
+      class="tab-button"
+      onclick="openTab('research', this)">
+      Research
+    </button>
+
+    <button
+      class="tab-button"
+      onclick="window.location.href='contacts.html'">
+      Contact
+    </button>
+
+  </div>
+
+  <!-- ABOUT TAB / HOME PAGE -->
+  <div id="about" class="content active">
+
+    <h1>About Our Research on Urban Oceans</h1>
+
+    <p>
+      In 2023, the Pelagic Ecosystems Lab launched a new research direction
+      to understand how urban environments interact with the coastal ocean,
+      influence ecosystem health, and shape biogeochemical processes.
+      Our work focuses on the Vancouver region as a model urban–marine interface.
+    </p>
+
+    <p>
+      <a
+        href="https://oceans.ubc.ca/2023/08/29/iof-associate-professor-receives-nserc-discovery-grant-to-research-the-impacts-of-urbanization-on-the-coastal-ocean/"
+        target="_blank"
+        rel="noopener noreferrer">
+        Read the project announcement
+      </a>
+    </p>
+
+    <h2>Current Research Questions</h2>
+
+    <ul>
+      <li>
+        What is the organic matter and inorganic nutrient content of stormwater,
+        urban rivers, and other urban inputs to the coastal ocean?
+      </li>
+
+      <li>
+        What biogeochemical signatures do urban inputs leave in the nearshore ocean?
+      </li>
+
+      <li>
+        What is the spatial footprint of urban material inputs in coastal waters?
+      </li>
+
+      <li>
+        What is the fate and transformation of urban-derived materials once
+        they enter the ocean?
+      </li>
+
+      <li>
+        How do urban inputs affect organism health, food webs, and the ecosystem
+        services they support?
+      </li>
+
+      <li>
+        How does urbanization influence marine biodiversity?
+      </li>
+    </ul>
+
+    <p>
+      <a
+        href="https://www.google.com/maps/d/u/0/viewer?mid=1jnSrcZep1-xvjDW4igHAW3HhqRavRQQ&ll=49.347595158040754%2C-122.36356574999999&z=10"
+        target="_blank"
+        rel="noopener noreferrer">
+        View the map of study sites
+      </a>
+    </p>
+
+    <h2>Collaborators</h2>
+
+    <ul>
+      <li>Tsleil-Waututh Nation</li>
+      <li>Metro Vancouver</li>
+      <li>Scholes Lab</li>
+      <li>Fisheries and Oceans Canada</li>
+    </ul>
+
+  </div>
+
+  <!-- RESEARCH TAB -->
+  <div id="research" class="content">
+
+    <h1>Research Projects</h1>
+
+    <p>Project in progress:</p>
+
+    <!-- TWO PHOTOS: ONLY VISIBLE IN THE RESEARCH TAB -->
+    <div class="research-photos">
+
+      <div>
+        <img
+          src="images/v5.png"
+          alt="Poster findings"
+          loading="lazy">
+      </div>
+
+      <div>
+        <img
+          src="images/v5a.png"
+          alt="Infographic"
+          loading="lazy">
+      </div>
+
+    </div>
+
+    <!-- Research Project Cards -->
+    <div class="grid">
+
+      <a
+        href="MetroVanProject.html"
+        style="text-decoration: none; color: inherit;">
+
+        <div class="card">
+          <h3>Metro Vancouver Review</h3>
+          <p>
+            Review of current state and history of Metro Vancouver's urban oceans.
+          </p>
+        </div>
+
+      </a>
+
+      <div class="card">
+        <h3>Project Two</h3>
+        <p>Stay Tuned.</p>
+      </div>
+
+      <div class="card">
+        <h3>Project Three</h3>
+        <p>Stay Tuned.</p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- TAB NAVIGATION SCRIPT -->
+  <script>
+    function openTab(tabName, button) {
+      // Hide all tab content
+      document.querySelectorAll(".content").forEach(section => {
+        section.classList.remove("active");
+      });
+
+      // Remove active state from all tab buttons
+      document.querySelectorAll(".tab-button").forEach(btn => {
+        btn.classList.remove("active");
+      });
+
+      // Show the selected tab
+      document.getElementById(tabName).classList.add("active");
+
+      // Highlight the selected button
+      button.classList.add("active");
+    }
+  </script>
+
+</body>
+</html>
