@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Urban Oceans Library</title>
+
+<style>
+
+/* PASTE ALL OF YOUR CSS HERE */
+
+*{box-sizing:border-box;}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f8f9;color:#333;}
+
+/* etc... */
+
+</style>
+
+</head>
+
+  <body>
+
+<header>
+    <h1>🌊 Urban Oceans Library</h1>
+    <p>Zotero CSL JSON Research Collection</p>
+</header>
+
+<div id="search">
+    <input
+        id="searchBox"
+        type="text"
+        placeholder="Search by title, author, or tag..."
+        oninput="updateLibrary()">
+</div>
+
+<div id="filters">
+    <select
+        id="yearFilter"
+        onchange="updateLibrary()">
+        <option value="all">
+            All Years
+        </option>
+    </select>
+</div>
+
+<div id="tabs"></div>
+
+<div id="sort">
+
+    <button
+        class="tab active"
+        onclick="sortLibrary('title')">
+        Title A-Z
+    </button>
+
+    <button
+        class="tab"
+        onclick="sortLibrary('year')">
+        Newest Year
+    </button>
+
+    <button
+        class="tab"
+        onclick="sortLibrary('author')">
+        Author A-Z
+    </button>
+
+</div>
+
+<main id="library">
+
+    Loading publications...
+
+</main>
+
+<footer>
+
+    Urban Oceans Research Library
+
+</footer>
+
+<script> 
+
+g.
+
+JavaScript
+/* =====================================
+GLOBALS
+===================================== */
+ 
+let publications = [];
+let activeTab = "All";
+ 
+const library = document.getElementById("library");
+const tabs = document.getElementById("tabs");
+const yearFilter = document.getElementById("yearFilter");
+ 
+let csvLookup = {};
+let csvHeaders = [];
+let matchedCsvTitles = [];
+let unmatchedCsvTitles = [];
+ 
+/* =====================================
+HELPERS
+===================================== */
+ 
+function normalizeTitle(title) {
+return (title || "")
+.toLowerCase()
+.replace(/~/g, ":")
+.replace(/[^\w\s:]/g, "")
+.replace(/\s+/g, " ")
+.trim();
+}
+ 
+function getYear(item) {
+return Number(
+item.issued?.["date-parts"]?.[0]?.[0]
+) || 0;
+}
+ 
+function getAuthor(item) {
+ 
+if (!item.author?.length)
+return "";
+ 
+const first = item.author[0];
+ 
+return first.family ||
+first.literal ||
+"";
+}
+ 
+function getType(item) {
+ 
+const types = {
+"article-journal":
+"Journal Article",
+ 
+"article-magazine":
+"Magazine Article",
+ 
+"article-newspaper":
+"Newspaper Article",
+ 
+"book":
+"Book",
+ 
+"chapter":
+"Book Chapter",
+ 
+"report":
+"Report",
+ 
+"thesis":
+"Thesis",
+ 
+"paper-conference":
+"Conference Paper",
+ 
+"webpage":
+"Web Page"
+};
+ 
+return types[item.type] || "Other";
+}
+
+/* =====================================
+   INITIALIZE LIBRARY
+===================================== */
+
+async function initializeLibrary() {
+
+    try {
+
+        const response =
+            await fetch(
+                "Urban-Oceans-2025.json"
+            );
+
+        publications =
+            await response.json();
+
+        publications.sort((a, b) =>
+            (a.title || "")
+                .localeCompare(
+                    b.title || "",
+                    undefined,
+                    {
+                        sensitivity:
+                            "base"
+                    }
+                )
+        );
+
+        publications.forEach(
+            (item, index) => {
+
+                item.libraryIndex =
+                    String(
+                        index + 1
+                    )
+                    .padStart(
+                        3,
+                        "0"
+                    );
+
+            }
+        );
+
+        createYearFilter();
+        createTabs();
+
+        await loadCsvTags();
+
+        display(publications);
+
+    } catch (error) {
+
+        console.error(error);
+
+        library.innerHTML =
+            "<h2>Could not load JSON file.</h2>";
+    }
+}
+
+initializeLibrary();
+
+/* =====================================
+   LOAD CSV
+===================================== */
+
+async function loadCsvTags() {
+
+    try {
+
+        const response =
+            await fetch(
+                "article_tags.csv"
+            );
+
+        const text =
+            await response.text();
+
+        const rows = text
+            .trim()
+            .split(/\r?\n/)
+            .map(line => {
+
+                const matches =
+                    line.match(
+                        /(".*?"|[^",]+)(?=\s*,|\s*$)/g
+                    );
+
+                return matches
+                    ? matches.map(v =>
+                        v
+                            .replace(
+                                /^"|"$/g,
+                                ""
+                            )
+                            .trim()
+                    )
+                    : [];
+
+            });
+
+        csvHeaders =
+            rows[0].slice(1);
+
+        rows.slice(1)
+            .forEach(row => {
+
+                if (
+                    row.length < 2
+                ) return;
+
+                let title =
+                    row[0]
+                    .replace(
+                        /^\d+\s*:\s*/,
+                        ""
+                    )
+                    .trim();
+
+                const key =
+                    normalizeTitle(
+                        title
+                    );
+
+                const activeTags =
+                    csvHeaders.filter(
+                        (_, i) =>
+                            row[i + 1]
+                                ?.trim() ===
+                            "1"
+                    );
+
+                csvLookup[key] = {
+                    originalTitle:
+                        title,
+                    tags:
+                        activeTags
+                };
+
+            });
+
+        mergeCsvTagsIntoJson();
+        showCsvMatchReport();
+
+    } catch (error) {
+
+        console.error(
+            "CSV Load Error:",
+            error
+        );
+    }
+}
+
+  /* =====================================
+   CSV MERGE
+===================================== */
+
+function mergeCsvTagsIntoJson() {
+
+    matchedCsvTitles = [];
+    unmatchedCsvTitles = [];
+
+    publications.forEach(item => {
+
+        const key =
+            normalizeTitle(item.title);
+
+        if (csvLookup[key]) {
+
+            item.csvTags =
+                csvLookup[key].tags;
+
+            matchedCsvTitles.push(
+                csvLookup[key].originalTitle
+            );
+
+        } else {
+
+            item.csvTags = [];
+        }
+    });
+
+    Object.values(csvLookup)
+        .forEach(entry => {
+
+            if (
+                !matchedCsvTitles.includes(
+                    entry.originalTitle
+                )
+            ) {
+
+                unmatchedCsvTitles.push(
+                    entry.originalTitle
+                );
+            }
+        });
+}
+
+function showCsvMatchReport() {
+
+    console.group(
+        "CSV Match Report"
+    );
+
+    console.log(
+        `Matched: ${matchedCsvTitles.length}`
+    );
+
+    console.log(
+        `Unmatched: ${unmatchedCsvTitles.length}`
+    );
+
+    console.groupEnd();
+}
+
+/* =====================================
+   YEAR FILTER
+===================================== */
+
+function createYearFilter() {
+
+    const years = [
+        ...new Set(
+            publications
+                .map(item =>
+                    getYear(item)
+                )
+                .filter(Boolean)
+        )
+    ].sort((a, b) => b - a);
+
+    years.forEach(year => {
+
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value = year;
+        option.textContent = year;
+
+        yearFilter.appendChild(
+            option
+        );
+
+    });
+}
+
+/* =====================================
+   TABS
+===================================== */
+
+function createTabs() {
+
+    tabs.innerHTML = "";
+
+    const counts = {};
+
+    publications.forEach(item => {
+
+        const type =
+            getType(item);
+
+        counts[type] =
+            (counts[type] || 0) + 1;
+
+    });
+
+    addTab(
+        "All",
+        publications
+    );
+
+    Object.keys(counts)
+        .sort()
+        .forEach(type => {
+
+            addTab(
+                type,
+                publications.filter(
+                    item =>
+                        getType(item)
+                        === type
+                )
+            );
+
+        });
+}
+
+function addTab(name, data) {
+
+    const button =
+        document.createElement(
+            "button"
+        );
+
+    button.className = "tab";
+
+    button.textContent =
+        `${name} (${data.length})`;
+
+    button.onclick = () => {
+
+        activeTab = name;
+
+        document
+            .querySelectorAll(
+                "#tabs .tab"
+            )
+            .forEach(btn =>
+                btn.classList.remove(
+                    "active"
+                )
+            );
+
+        button.classList.add(
+            "active"
+        );
+
+        updateLibrary();
+    };
+
+    tabs.appendChild(button);
+
+    if (name === "All") {
+        button.classList.add(
+            "active"
+        );
+    }
+}/* =====================================
+   SORTING
+===================================== */
+
+function sortLibrary(method) {
+
+    switch (method) {
+
+        case "title":
+
+            publications.sort((a, b) =>
+                (a.title || "")
+                    .localeCompare(
+                        b.title || "",
+                        undefined,
+                        { sensitivity: "base" }
+                    )
+            );
+
+            break;
+
+        case "year":
+
+            publications.sort((a, b) =>
+                getYear(b) -
+                getYear(a)
+            );
+
+            break;
+
+        case "author":
+
+            publications.sort((a, b) =>
+                getAuthor(a)
+                    .localeCompare(
+                        getAuthor(b),
+                        undefined,
+                        { sensitivity: "base" }
+                    )
+            );
+
+            break;
+    }
+
+    updateLibrary();
+}
+
+/* =====================================
+   SEARCH + FILTER
+===================================== */
+
+function updateLibrary() {
+
+    let results = [...publications];
+
+    /* Type Tab Filter */
+
+    if (activeTab !== "All") {
+
+        results = results.filter(
+            item =>
+                getType(item) === activeTab
+        );
+    }
+
+    /* Year Filter */
+
+    const selectedYear =
+        yearFilter.value;
+
+    if (selectedYear !== "all") {
+
+        results = results.filter(
+            item =>
+                String(getYear(item))
+                === selectedYear
+        );
+    }
+
+    /* Search */
+
+    const query =
+        document
+            .getElementById("searchBox")
+            .value
+            .toLowerCase()
+            .trim();
+
+    if (query) {
+
+        results = results.filter(item => {
+
+            const title =
+                (item.title || "")
+                .toLowerCase();
+
+            const authors =
+                (item.author || [])
+                    .map(author =>
+                        author.family ||
+                        author.literal ||
+                        ""
+                    )
+                    .join(" ")
+                    .toLowerCase();
+
+            const tags =
+                (item.csvTags || [])
+                    .join(" ")
+                    .toLowerCase();
+
+            return (
+                title.includes(query) ||
+                authors.includes(query) ||
+                tags.includes(query)
+            );
+
+        });
+    }
+
+    display(results);
+}
+
+/* =====================================
+   DISPLAY
+===================================== */
+
+function display(items) {
+
+    library.innerHTML = "";
+
+    if (items.length === 0) {
+
+        library.innerHTML =
+            "<h3>No matching publications found.</h3>";
+
+        return;
+    }
+
+    items.forEach(item => {
+
+        const authors =
+            (item.author || [])
+                .map(author => {
+
+                    if (author.literal) {
+                        return author.literal;
+                    }
+
+                    return `${author.given || ""} ${author.family || ""}`.trim();
+
+                })
+                .join(", ");
+
+        let links = "";
+
+        if (item.URL) {
+
+            links += `
+                <a href="${item.URL}"
+                   target="_blank">
+                    Link
+                </a>
+            `;
+        }
+
+        if (item.DOI) {
+
+            links += `
+                <a href="https://doi.org/${item.DOI}"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    DOI
+                </a>
+            `;
+        }
+
+        const allTags = [
+            ...(item.keyword || []),
+            ...(item.csvTags || [])
+        ];
+
+        const tagsHTML =
+            allTags
+                .map(tag =>
+                    `<span class="tag">${tag}</span>`
+                )
+                .join("");
+
+        const card =
+            document.createElement("div");
+
+        card.className = "card";
+
+        card.innerHTML = `
+            <div class="citation-row">
+
+                <div class="number">
+                    ${item.libraryIndex class="citation">
+
+                    <div class="title">
+                        ${item.title || "Untitled"}
+                    </div>
+
+                    <div class="authors">
+                        ${authors}
+                    </div>
+
+                    <div class="journal">
+                        ${item["container-title"] || ""}
+                        |
+                        ${getYear(item)}
+                    </div>
+
+                    <div class="links">
+                        ${links}
+                    </div>
+
+                    <button
+                        class="expand"
+                        onclick="toggleAbstract(this)">
+                        ▼ Abstract
+                    </button>
+
+                    <div class="abstract hidden">
+                        ${item.abstract || "No abstract available."}
+                    </div>
+
+                    <div class="tags">
+                        ${tagsHTML}
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+
+        library.appendChild(card);
+    });
+}
+
+/* =====================================
+   ABSTRACT TOGGLE
+===================================== */
+
+function toggleAbstract(button) {
+
+    const abstract =
+        button.nextElementSibling;
+
+    if (
+        abstract.classList.contains(
+            "hidden"
+        )
+    ) {
+
+        abstract.classList.remove(
+            "hidden"
+        );
+
+        button.textContent =
+            "▲ Hide Abstract";
+
+    } else {
+
+        abstract.classList.add(
+            "hidden"
+        );
+
+        button.textContent =
+            "▼ Abstract";
+    }
+}
+
+  
+
+</script>
+
+</body>
+
+</html>
