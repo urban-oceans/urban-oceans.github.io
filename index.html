@@ -90,6 +90,23 @@
       margin-top: 0;
       color: #2a5c7b;
     }
+
+    .photo-gallery {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        flex-wrap: wrap;
+        margin: 0 auto;
+        }
+
+    .photo-gallery img {
+      width: 360px;
+      height: 480px;
+      object-fit: cover;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+      
   
     a {
       color: #2a5c7b;
@@ -109,12 +126,12 @@
   <button class="tab-button active" onclick="openTab('about', this)">About</button>
   <button class="tab-button" onclick="window.location.href='https://urban-oceans.github.io/articlev2.html'">Literature Library</button>
 
-  <button class="tab-button" onclick="openTab('research', this)">Research</button>
   <button class="tab-button" onclick="window.location.href='contacts.html'">Contact</button>
 </div>
 
 <!-- About -->
 <div id="about" class="content active">
+  <a href="#literature">↓ Scroll down to the Metro Vancouver Ocean Literature Review by Wong et al.</a>
   <h1>About Our Research on Urban Oceans</h1>
 
   <p>In 2023, the Pelagic Ecosystems Lab launched a new research direction to understand how urban environments interact with the coastal ocean, influence ecosystem health, and shape biogeochemical processes. Our work focuses on the Vancouver region as a model urban–marine interface.</p>
@@ -148,6 +165,70 @@
     <li>Scholes Lab</li>
     <li>Fisheries and Oceans Canada</li>
   </ul>
+
+
+  <div id="literature">
+    <h1>Metro Vancouver Literature Review</h1>
+
+
+    <div class="container">
+      <a href="#Findings">↓ Scroll down to Findings and Poster </a>
+    
+   
+      <p>What is this project about?</p>
+    
+      <p>
+        Coastal marine ecosystem has been transformed by rising resource use and large-scale urban development from rapid human population growth. Emerging and recurring challenges rooted in spatial-temporal changes of land-sea connections in urbanized regions need to be critically examined to ensure the long-term co-existence and sustainability of people and wildlife in the coastal interface.
+      </p>
+    
+      <p>
+        A Scoping and a Systematic Review were performed in this study to characterize the current ecological and biological state-of-knowledge of the urban marine environment around the Metro Vancouver region. Published scientific literature on marine ecosystems in a pre-defined area around Vancouver were extracted, spanning the years 1921 to 2025.
+      </p>
+    
+      <p>
+        This literature is being examined through qualitative categorization and thematic coding analysis by study discipline, time, location, and other criteria. In this presentation, we will review the history of research development and understanding of human impacts on the Metro Vancouver marine ecosystem across disciplines, and identify critical knowledge gaps through comparison of Vancouver-based evidence with global reviews of urbanization impacts on the marine environment.
+      </p>
+    
+      <p>
+        Based on identified knowledge gaps, recommendations will be made for priority biological and ecological research areas in urbanized coastal marine ecosystems of Vancouver and beyond.
+      </p>
+    <div/>
+      
+    <div id = "Findings">
+      <p style="margin-top:40px;">
+        <a href="year-of-study.html">View Year of Study Analysis →</a>
+      </p>
+    
+        <p style="margin-top:40px;">
+        <a href="articlev2.html"> View Literature Library (n=832) →</a>
+      </p>
+    
+      <p style="margin-top:40px;">
+        <a href="leaflet.html">View Map of Research locations →</a>
+      </p>
+      
+    
+    </div>
+      
+    
+    <div class="photo-gallery">
+    <a href="https://urban-oceans.github.io/v5.jpg" target="_blank">
+      <img
+        src="v5.jpg"
+        alt="Findings Poster"
+      />
+    </a>
+  
+    
+    <a href="https://urban-oceans.github.io/v5a.jpg" target="_blank"> 
+      <img
+        src="v5a.jpg"
+        alt="Infographic"
+      />
+    </a>
+    </div>
+  <div/>
+
 </div>
 
 <!-- Research -->
