@@ -1,688 +1,189 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Urban Oceans Library</title>
+<meta charset="utf-8">
+<title>Zotero Quality Matcher</title>
 
 <style>
 
-/* PASTE ALL OF YOUR CSS HERE */
+body{
+    font-family:Arial,sans-serif;
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+    background:#f5f7f8;
+}
 
-*{box-sizing:border-box;}
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f8f9;color:#333;}
+.card{
+    background:white;
+    border-radius:10px;
+    padding:15px;
+    margin-bottom:8px;
+    box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
 
-/* etc... */
+.title{
+    font-size:18px;
+    font-weight:bold;
+    color:#003b4d;
+}
+
+.authors{
+    margin-top:4px;
+    color:#666;
+}
+
+.quality{
+    margin-top:8px;
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:15px;
+    background:#007c91;
+    color:white;
+    font-size:12px;
+}
+
+.unmatched{
+    background:#fff3cd;
+    border:1px solid #ffeeba;
+    padding:15px;
+    border-radius:8px;
+    margin-bottom:25px;
+}
 
 </style>
 
 </head>
 
-  <body>
+<body>
 
-<header>
-    <h1>🌊 Urban Oceans Library</h1>
-    <p>Zotero CSL JSON Research Collection</p>
-</header>
+<h1>Zotero Quality Assessment Library</h1>
 
-<div id="search">
-    <input
-        id="searchBox"
-        type="text"
-        placeholder="Search by title, author, or tag..."
-        oninput="updateLibrary()">
+<div id="report"></div>
+
+<div id="library">
+Loading...
 </div>
 
-<div id="filters">
-    <select
-        id="yearFilter"
-        onchange="updateLibrary()">
-        <option value="all">
-            All Years
-        </option>
-    </select>
-</div>
+<script>
 
-<div id="tabs"></div>
-
-<div id="sort">
-
-    <button
-        class="tab active"
-        onclick="sortLibrary('title')">
-        Title A-Z
-    </button>
-
-    <button
-        class="tab"
-        onclick="sortLibrary('year')">
-        Newest Year
-    </button>
-
-    <button
-        class="tab"
-        onclick="sortLibrary('author')">
-        Author A-Z
-    </button>
-
-</div>
-
-<main id="library">
-
-    Loading publications...
-
-</main>
-
-<footer>
-
-    Urban Oceans Research Library
-
-</footer>
-
-<script> 
-
-g.
-
-JavaScript
-/* =====================================
-GLOBALS
-===================================== */
- 
 let publications = [];
-let activeTab = "All";
- 
-const library = document.getElementById("library");
-const tabs = document.getElementById("tabs");
-const yearFilter = document.getElementById("yearFilter");
- 
-let csvLookup = {};
-let csvHeaders = [];
-let matchedCsvTitles = [];
-let unmatchedCsvTitles = [];
- 
-/* =====================================
-HELPERS
-===================================== */
- 
-function normalizeTitle(title) {
-return (title || "")
-.toLowerCase()
-.replace(/~/g, ":")
-.replace(/[^\w\s:]/g, "")
-.replace(/\s+/g, " ")
-.trim();
-}
- 
-function getYear(item) {
-return Number(
-item.issued?.["date-parts"]?.[0]?.[0]
-) || 0;
-}
- 
-function getAuthor(item) {
- 
-if (!item.author?.length)
-return "";
- 
-const first = item.author[0];
- 
-return first.family ||
-first.literal ||
-"";
-}
- 
-function getType(item) {
- 
-const types = {
-"article-journal":
-"Journal Article",
- 
-"article-magazine":
-"Magazine Article",
- 
-"article-newspaper":
-"Newspaper Article",
- 
-"book":
-"Book",
- 
-"chapter":
-"Book Chapter",
- 
-"report":
-"Report",
- 
-"thesis":
-"Thesis",
- 
-"paper-conference":
-"Conference Paper",
- 
-"webpage":
-"Web Page"
-};
- 
-return types[item.type] || "Other";
+let qualityLookup = {};
+
+function cleanTitle(title){
+
+    return title
+        .toLowerCase()
+        .replace(/^\d+\s*:\s*/,'')
+        .replace(/~/g,':')
+        .replace(/[.,;!?]/g,'')
+        .replace(/\s+/g,' ')
+        .trim();
 }
 
-/* =====================================
-   INITIALIZE LIBRARY
-===================================== */
+Promise.all([
+    fetch("Urban-Oceans-2025.json").then(r=>r.json()),
+    fetch("quality.csv").then(r=>r.text())
+])
 
-async function initializeLibrary() {
+.then(([jsonData,csvText])=>{
 
-    try {
+    publications = jsonData;
 
-        const response =
-            await fetch(
-                "Urban-Oceans-2025.json"
-            );
+    parseCSV(csvText);
 
-        publications =
-            await response.json();
+    applyQuality();
 
-        publications.sort((a, b) =>
-            (a.title || "")
-                .localeCompare(
-                    b.title || "",
-                    undefined,
-                    {
-                        sensitivity:
-                            "base"
-                    }
-                )
-        );
+    displayLibrary();
 
-        publications.forEach(
-            (item, index) => {
+})
 
-                item.libraryIndex =
-                    String(
-                        index + 1
-                    )
-                    .padStart(
-                        3,
-                        "0"
-                    );
+.catch(err=>{
 
-            }
-        );
+    document.getElementById("library").innerHTML =
+    "<h2>Error loading files.</h2>";
 
-        createYearFilter();
-        createTabs();
+    console.error(err);
 
-        await loadCsvTags();
+});
 
-        display(publications);
 
-    } catch (error) {
+function parseCSV(csvText){
 
-        console.error(error);
+    const rows = csvText
+        .trim()
+        .split(/\r?\n/);
 
-        library.innerHTML =
-            "<h2>Could not load JSON file.</h2>";
-    }
+    const unmatched = [];
+
+    rows.slice(1).forEach(row=>{
+
+        const cols =
+            row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)
+            ?.map(v=>v.replace(/^"|"$/g,'').trim());
+
+        if(!cols || cols.length < 3) return;
+
+        const title = cols[1];
+        const quality = cols[2];
+
+        qualityLookup[cleanTitle(title)] = quality;
+
+    });
+
 }
 
-initializeLibrary();
 
-/* =====================================
-   LOAD CSV
-===================================== */
+function applyQuality(){
 
-async function loadCsvTags() {
+    let matchCount = 0;
 
-    try {
-
-        const response =
-            await fetch(
-                "article_tags.csv"
-            );
-
-        const text =
-            await response.text();
-
-        const rows = text
-            .trim()
-            .split(/\r?\n/)
-            .map(line => {
-
-                const matches =
-                    line.match(
-                        /(".*?"|[^",]+)(?=\s*,|\s*$)/g
-                    );
-
-                return matches
-                    ? matches.map(v =>
-                        v
-                            .replace(
-                                /^"|"$/g,
-                                ""
-                            )
-                            .trim()
-                    )
-                    : [];
-
-            });
-
-        csvHeaders =
-            rows[0].slice(1);
-
-        rows.slice(1)
-            .forEach(row => {
-
-                if (
-                    row.length < 2
-                ) return;
-
-                let title =
-                    row[0]
-                    .replace(
-                        /^\d+\s*:\s*/,
-                        ""
-                    )
-                    .trim();
-
-                const key =
-                    normalizeTitle(
-                        title
-                    );
-
-                const activeTags =
-                    csvHeaders.filter(
-                        (_, i) =>
-                            row[i + 1]
-                                ?.trim() ===
-                            "1"
-                    );
-
-                csvLookup[key] = {
-                    originalTitle:
-                        title,
-                    tags:
-                        activeTags
-                };
-
-            });
-
-        mergeCsvTagsIntoJson();
-        showCsvMatchReport();
-
-    } catch (error) {
-
-        console.error(
-            "CSV Load Error:",
-            error
-        );
-    }
-}
-
-  /* =====================================
-   CSV MERGE
-===================================== */
-
-function mergeCsvTagsIntoJson() {
-
-    matchedCsvTitles = [];
-    unmatchedCsvTitles = [];
-
-    publications.forEach(item => {
+    publications.forEach(item=>{
 
         const key =
-            normalizeTitle(item.title);
+            cleanTitle(item.title || '');
 
-        if (csvLookup[key]) {
+        if(qualityLookup[key]){
 
-            item.csvTags =
-                csvLookup[key].tags;
+            item.quality =
+                qualityLookup[key];
 
-            matchedCsvTitles.push(
-                csvLookup[key].originalTitle
-            );
-
-        } else {
-
-            item.csvTags = [];
+            matchCount++;
         }
-    });
+        else{
 
-    Object.values(csvLookup)
-        .forEach(entry => {
-
-            if (
-                !matchedCsvTitles.includes(
-                    entry.originalTitle
-                )
-            ) {
-
-                unmatchedCsvTitles.push(
-                    entry.originalTitle
-                );
-            }
-        });
-}
-
-function showCsvMatchReport() {
-
-    console.group(
-        "CSV Match Report"
-    );
-
-    console.log(
-        `Matched: ${matchedCsvTitles.length}`
-    );
-
-    console.log(
-        `Unmatched: ${unmatchedCsvTitles.length}`
-    );
-
-    console.groupEnd();
-}
-
-/* =====================================
-   YEAR FILTER
-===================================== */
-
-function createYearFilter() {
-
-    const years = [
-        ...new Set(
-            publications
-                .map(item =>
-                    getYear(item)
-                )
-                .filter(Boolean)
-        )
-    ].sort((a, b) => b - a);
-
-    years.forEach(year => {
-
-        const option =
-            document.createElement(
-                "option"
-            );
-
-        option.value = year;
-        option.textContent = year;
-
-        yearFilter.appendChild(
-            option
-        );
-
-    });
-}
-
-/* =====================================
-   TABS
-===================================== */
-
-function createTabs() {
-
-    tabs.innerHTML = "";
-
-    const counts = {};
-
-    publications.forEach(item => {
-
-        const type =
-            getType(item);
-
-        counts[type] =
-            (counts[type] || 0) + 1;
+            item.quality =
+                "Not Assessed";
+        }
 
     });
 
-    addTab(
-        "All",
-        publications
-    );
-
-    Object.keys(counts)
-        .sort()
-        .forEach(type => {
-
-            addTab(
-                type,
-                publications.filter(
-                    item =>
-                        getType(item)
-                        === type
-                )
-            );
-
-        });
+    report.innerHTML =
+        `<div class="unmatched">
+        <strong>Matches:</strong> ${matchCount}
+        </div>`;
 }
 
-function addTab(name, data) {
 
-    const button =
-        document.createElement(
-            "button"
-        );
+function displayLibrary(){
 
-    button.className = "tab";
-
-    button.textContent =
-        `${name} (${data.length})`;
-
-    button.onclick = () => {
-
-        activeTab = name;
-
-        document
-            .querySelectorAll(
-                "#tabs .tab"
-            )
-            .forEach(btn =>
-                btn.classList.remove(
-                    "active"
-                )
-            );
-
-        button.classList.add(
-            "active"
-        );
-
-        updateLibrary();
-    };
-
-    tabs.appendChild(button);
-
-    if (name === "All") {
-        button.classList.add(
-            "active"
-        );
-    }
-}/* =====================================
-   SORTING
-===================================== */
-
-function sortLibrary(method) {
-
-    switch (method) {
-
-        case "title":
-
-            publications.sort((a, b) =>
-                (a.title || "")
-                    .localeCompare(
-                        b.title || "",
-                        undefined,
-                        { sensitivity: "base" }
-                    )
-            );
-
-            break;
-
-        case "year":
-
-            publications.sort((a, b) =>
-                getYear(b) -
-                getYear(a)
-            );
-
-            break;
-
-        case "author":
-
-            publications.sort((a, b) =>
-                getAuthor(a)
-                    .localeCompare(
-                        getAuthor(b),
-                        undefined,
-                        { sensitivity: "base" }
-                    )
-            );
-
-            break;
-    }
-
-    updateLibrary();
-}
-
-/* =====================================
-   SEARCH + FILTER
-===================================== */
-
-function updateLibrary() {
-
-    let results = [...publications];
-
-    /* Type Tab Filter */
-
-    if (activeTab !== "All") {
-
-        results = results.filter(
-            item =>
-                getType(item) === activeTab
-        );
-    }
-
-    /* Year Filter */
-
-    const selectedYear =
-        yearFilter.value;
-
-    if (selectedYear !== "all") {
-
-        results = results.filter(
-            item =>
-                String(getYear(item))
-                === selectedYear
-        );
-    }
-
-    /* Search */
-
-    const query =
-        document
-            .getElementById("searchBox")
-            .value
-            .toLowerCase()
-            .trim();
-
-    if (query) {
-
-        results = results.filter(item => {
-
-            const title =
-                (item.title || "")
-                .toLowerCase();
-
-            const authors =
-                (item.author || [])
-                    .map(author =>
-                        author.family ||
-                        author.literal ||
-                        ""
-                    )
-                    .join(" ")
-                    .toLowerCase();
-
-            const tags =
-                (item.csvTags || [])
-                    .join(" ")
-                    .toLowerCase();
-
-            return (
-                title.includes(query) ||
-                authors.includes(query) ||
-                tags.includes(query)
-            );
-
-        });
-    }
-
-    display(results);
-}
-
-/* =====================================
-   DISPLAY
-===================================== */
-
-function display(items) {
+    const library =
+        document.getElementById("library");
 
     library.innerHTML = "";
 
-    if (items.length === 0) {
-
-        library.innerHTML =
-            "<h3>No matching publications found.</h3>";
-
-        return;
-    }
-
-    items.forEach(item => {
+    publications.forEach(item=>{
 
         const authors =
-            (item.author || [])
-                .map(author => {
+            (item.author||[])
+            .map(a=>
+                a.literal ||
+                `${a.given||''} ${a.family||''}`.trim()
+            )
+            .join(", ");
 
-                    if (author.literal) {
-                        return author.literal;
-                    }
-
-                    return `${author.given || ""} ${author.family || ""}`.trim();
-
-                })
-                .join(", ");
-
-        let links = "";
-
-        if (item.URL) {
-
-            links += `
-                <a href="${item.URL}"
-                   target="_blank">
-                    Link
-                </a>
-            `;
-        }
-
-        if (item.DOI) {
-
-            links += `
-                <a href="https://doi.org/${item.DOI}"
-                   target="_blank"
-                   rel="noopener noreferrer">
-                    DOI
-                </a>
-            `;
-        }
-
-        const allTags = [
-            ...(item.keyword || []),
-            ...(item.csvTags || [])
-        ];
-
-        const tagsHTML =
-            allTags
-                .map(tag =>
-                    `<span class="tag">${tag}</span>`
-                )
-                .join("");
+        const year =
+            item.issued?.["date-parts"]?.[0]?.[0] || '';
 
         const card =
             document.createElement("div");
@@ -690,89 +191,33 @@ function display(items) {
         card.className = "card";
 
         card.innerHTML = `
-            <div class="citation-row">
 
-                <div class="number">
-                    ${item.libraryIndex class="citation">
-
-                    <div class="title">
-                        ${item.title || "Untitled"}
-                    </div>
-
-                    <div class="authors">
-                        ${authors}
-                    </div>
-
-                    <div class="journal">
-                        ${item["container-title"] || ""}
-                        |
-                        ${getYear(item)}
-                    </div>
-
-                    <div class="links">
-                        ${links}
-                    </div>
-
-                    <button
-                        class="expand"
-                        onclick="toggleAbstract(this)">
-                        ▼ Abstract
-                    </button>
-
-                    <div class="abstract hidden">
-                        ${item.abstract || "No abstract available."}
-                    </div>
-
-                    <div class="tags">
-                        ${tagsHTML}
-                    </div>
-
-                </div>
-
+            <div class="title">
+                ${item.title || "Untitled"}
             </div>
+
+            <div class="authors">
+                ${authors}
+            </div>
+
+            <div>
+                ${item["container-title"] || ""}
+                ${year ? " | " + year : ""}
+            </div>
+
+            <div class="quality">
+                Quality: ${item.quality}
+            </div>
+
         `;
 
         library.appendChild(card);
+
     });
+
 }
-
-/* =====================================
-   ABSTRACT TOGGLE
-===================================== */
-
-function toggleAbstract(button) {
-
-    const abstract =
-        button.nextElementSibling;
-
-    if (
-        abstract.classList.contains(
-            "hidden"
-        )
-    ) {
-
-        abstract.classList.remove(
-            "hidden"
-        );
-
-        button.textContent =
-            "▲ Hide Abstract";
-
-    } else {
-
-        abstract.classList.add(
-            "hidden"
-        );
-
-        button.textContent =
-            "▼ Abstract";
-    }
-}
-
-  
 
 </script>
 
 </body>
-
 </html>
