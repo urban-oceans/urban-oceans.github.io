@@ -201,6 +201,10 @@
                 <p class="font-semibold text-sky-900 mb-1">Articles Missing Link or DOI (<span id="missingLinkCount">0</span>):</p>
                 <ul id="missingLinkList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-sky-200/50"></ul>
               </div>
+              <div>
+                <p class="font-semibold text-sky-900 mb-1">Articles Missing Abstract OR Link/DOI (<span id="missingEitherCount">0</span>):</p>
+                <ul id="missingEitherList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-sky-200/50"></ul>
+              </div>
             </div>
           </details>
         </div>
@@ -296,6 +300,30 @@
     let currentSort = 'title'; // 'title' | 'year' | 'author'
     let expandedAbstracts = new Set();
     let expandedTags = new Set(); // Stores item IDs whose tags are expanded
+
+    // Exact Custom Tag Order Sequence
+    const customTagOrder = [
+      "LT : Scientific and Sustainability", "LU : Biological", "LV : Chemical", "LW : Economic", "LX : Environmental - Anthropogenic", "LY : Geological - Seismic and Geomorphology", "LZ : not ecosystem related", "MA : Physical", "MB : Social",
+      "A : Abstract and Methods code", "B : Exclude", "D : Location of Study", "E : BC except South Coast", "F : Central Coast", "G : Haida Gwaii", "H : Interior BC", "I : North Coast", "J : Boundary Bay", "K : Burrard Inlet", "L : Capilano", "M : Coal Harbour", "N : Deep Cove", "O : English Bay", "P : Jericho Beach", "Q : Spanish Bank", "R : UBC or Tower Beach", "S : West Vancouver", "T : Indian Arm", "U : Lions Gate WWTP", "V : Port Moody Arm", "W : Seymour River", "X : Stanley Park (Prospect Point included)", "Y : Vancouver Harbour", "Z : False Creek", "AA : Fraser River Estuary", "AB : Annacis Island", "AC : Barnston Island", "AD : Canoe Pass", "AE : Deas Slough", "AF : Delta (City) or Ladner", "AG : Douglas Island", "AH : Fraser Delta at large", "AI : Fraser River (Lower- Hope to Surrey)", "AJ : Frenchies Island", "AK : Gunderson Slough", "AL : Harrison", "AM : Iona", "AN : Musqueam Creek", "AO : New Westminster", "AP : North Arm", "AQ : Pitt Lake", "AR : Port Mann", "AS : Queensbourgh Slough", "AT : Richmond", "AU : Roberts Bank", "AV : South Arm", "AW : Steveston Jetty Sand Heads", "AX : Sturgeon Bank", "AY : Tsawwassen", "AZ : Westham Island", "BA : Woodward Island", "BB : Howe Sound", "BC : Bowen Island (W Coast)", "BD : Gibsons", "BE : Squamish", "BF : Thornbrough Channel", "BG : Non-Canadian Territories", "BH : Alaska", "BI : California", "BJ : Mexico", "BK : Oregon", "BL : Russia", "BM : Washington state", "BN : Salish Sea", "BO : Strait of Georgia", "BP : Desolation Island", "BQ : Gulf Islands", "BR : Hornby Island", "BS : Sunshine Coast", "BT : Vancouver Island", "BU : Clayquot Sound", "BV : Haro Strait", "BW : Nanaimo", "BX : Qualicum", "BY : Strait of Juan De Fuca", "BZ : Victoria", "CA : Long-term study", "CB : Multiple papers", "CC : Research Topic and Subjects", "CD : Algae, Phytoplankton, Bacteria, and Cyanobacteria", "CE : Algae", "CF : Bacteria", "CG : E-coli", "CH : Macrophyte seaweed algae", "CI : Fucus", "CJ : Red algae", "CK : Phytoplankton", "CL : chlorophyll a", "CM : Diatom", "CN : Dinoflagellates", "CO : Marine Snow", "CP : Phytoplankton culturing", "CQ : Spring bloom", "CR : Alkalinity and Acidity (pH)", "CS : Atmosphere", "CT : Air particles", "CU : Air quality", "CV : Particle transport (air to water)", "CW : Sea-spray", "CX : Calcium and Calcite", "CY : Circulation", "CZ : Entrainment", "DA : Renewal or residence time", "DB : Tides", "DC : Wind", "DD : Climate Adaptation", "DE : El Nino", "DF : Extreme heat event", "DG : Flood and Gates", "DH : Sea level rise", "DI : Sea surface temperature anomalies", "DJ : Commercial Fisheries", "DK : Earthquake", "DL : Basin Structure", "DM : Liquefaction", "DN : Seismic Stratigraphy", "DO : subsidence", "DP : Tsunami", "DQ : Ecotoxicology, Contaminants, and Environmental Pollution", "DR : Bioaccumulation", "DS : Chemical Pollution", "DT : 2,3,4,6-tetrachlorophenol (TeCP)", "DU : butyltins", "DV : carbofuran", "DW : CYPIA", "DX : DDD", "DY : DDE", "DZ : Dioxins", "EA : 2,3,7,8-tetrachlorodibenzo-p-dioxin (TCDD)", "EB : EROD", "EC : Fensulfothion", "ED : Fonofos", "EE : Monoalkyl Phthalate Esters (MPEs)", "EF : Nonylphenol and ethoxylate", "EG : Organochlorine (OC)", "EH : Pentachlorophenol PCP", "EI : Perfluorooctane Sulfonate PFOS", "EJ : Polybrominated diphenyl ethers PBDEs", "EK : Polychlorinated biphenyls (PCBs)", "EL : Polychlorinated dibenzofurans (PCDFs)", "EM : Polychlorinated dibenzo-p-dioxins (PCDDs)", "EN : Polycyclic aromatic hydrocarbons PAH", "EO : Tributyltin TBT", "EP : coal dust", "EQ : Construction waste", "ER : Creostole", "ES : degradation", "ET : Harmful Algal Bloom", "EU : Herbicide and Pesticide", "EV : Metals", "EW : Arsenic", "EX : Cadmium", "EY : Cesium 137", "EZ : Copper", "FA : Iron", "FB : Lead", "FC : Manganese", "FD : Mercury", "FE : Metallothionein", "FF : Nickel", "FG : Rare metals", "FH : Silver", "FI : Trace Metals", "FJ : Zinc", "FK : Microplastics", "FL : Noise", "FM : Oil spill", "FN : Paralytic Shellfish poisioning (PSP)", "FO : Parasite", "FP : Pathogen", "FQ : Pollution - General", "FR : Road particles", "FS : Viruses", "FT : Wasting syndrome", "FU : Water Quality", "FV : Fish", "FW : Eulachon", "FX : Herring", "FY : Lamprey", "FZ : Lingcod", "GA : Rockfish", "GB : Salmon", "GC : Salmon Distribution", "GD : Salmon Growth and Survival", "GE : Hatchery", "GF : Salmon Habitat", "GG : Salmon Migration", "GH : Sculpin", "GI : Shark - Dogfish", "GJ : Sturgeon", "GK : Surf smelt", "GL : Food Web", "GM : Diet", "GN : Grazing", "GO : Hunting by Humans", "GP : Parasitism", "GQ : Predation", "GR : Primary Productivity or production", "GS : Trophic Cacade or structure", "GT : Foraminifera", "GU : geochemistry", "GV : Habitat", "GW : Benthic Environments", "GX : Competition", "GY : Fresh Water", "GZ : Groundwater", "HA : Glass Sponge Reef", "HB : Intertidal", "HC : Beach", "HD : Biofilm", "HE : Brackish Marshes", "HF : Eelgrass habitat", "HG : Mudflats", "HH : Rocky intertidal", "HI : Shell hash", "HJ : Tidal Creek", "HK : Historical evidence", "HL : Archaeology", "HM : Glaciation", "HN : Ichnology", "HO : Palynology", "HP : Human drivers", "HQ : Human diet", "HR : Human health", "HS : Indigenous", "HT : Industrial activtity", "HU : Cooling water (hot)", "HV : Logging", "HW : Petroleum", "HX : Pulp Mill", "HY : Railway rights-of-way", "HZ : Land use", "IA : Planning and Management", "IB : Conservation and Recovery", "IC : Impact Assessment", "ID : Invertebrate", "IE : Anenome", "IF : Crustaceans", "IG : Amphipod", "IH : Copepod", "II : Echinoderm (sea stars)", "IJ : Gastropod", "IK : nematode", "IL : Nudibranch", "IM : Polychaete worms", "IN : Shellfish", "IO : Crab", "IP : Dungeness Crabs", "IQ : European Green Crab", "IR : Marine Mammal", "IS : Cetacean", "IT : Coastal river otters", "IU : Harbour Seal", "IV : Pinniped", "IW : Modelling", "IX : FVCOM (Finite-Volume Community Ocean Model)", "IY : Structure-from-motion", "IZ : Nutrition and Nutrients", "JA : Nitrogen", "JB : Phosphate", "JC : Silica", "JD : Ocean Monitoring Method", "JE : Bio-optics", "JF : Fluorescence", "JG : Isotopes", "JH : Observatory", "JI : Radiotracer", "JJ : Strontium", "JK : Remote Sensing", "JL : Sonar", "JM : Fish detection", "JN : UAV or ROV", "JO : Organic Carbon", "JP : Hydrocarbon", "JQ : Methane", "JR : Organic Matter or Enrichment", "JS : Oxygen", "JT : Physical properties", "JU : hydrothermal gradient", "JV : Salinity", "JW : Temperature", "JX : Turbidity and light", "JY : Waves", "JZ : Plant", "KA : Cattail", "KB : Peat", "KC : Scirpus", "KD : Seagrass", "KE : River flow or discharge", "KF : Plume", "KG : Sediment and Sand", "KH : Erosion", "KI : Pore water", "KJ : Sediment accumulation", "KK : Sediment Diffusion", "KL : Sewage outfall", "KM : Shipping", "KN : Ballast Water", "KO : Coal Terminal", "KP : Jetty or Port", "KQ : Ship detection", "KR : Shore Birds", "KS : Bald Eagle", "KT : Black Brant (Goose)", "KU : Cooper's or red-tailed Hawk", "KV : Cormorants", "KW : Dunlin", "KX : fork-tailed storm-petrels", "KY : Grebe", "KZ : Gull", "LA : Heron", "LB : Murrelets", "LC : Osprey", "LD : Peregrine Falcons", "LE : Plovers", "LF : Sand piper", "LG : Scoter", "LH : Sea Ducks", "LI : Snow Geese", "LJ : Swan", "LK : Species - invasive", "LL : Species - Population dynamics", "LM : Species at risk", "LN : Species description", "LO : Species distribution and abundance", "LP : Storm and Hydrology", "LQ : Sulphur", "LR : Zooplankton", "LS : Review",
+      "OQ : Year of Study", "OR : 1900", "OS : 1926", "OT : 1931", "OU : 1932", "OV : 1949", "OW : 1951", "OX : 1952", "OY : 1955", "OZ : 1956", "PA : 1959", "PB : 1960", "PC : 1962", "PD : 1964", "PE : 1965", "PF : 1966", "PG : 1967", "PH : 1968", "PI : 1969", "PJ : 1970", "PK : 1971", "PL : 1972", "PM : 1973", "PN : 1974", "PO : 1975", "PP : 1976", "PQ : 1977", "PR : 1978", "PS : 1979", "PT : 1980", "PU : 1981", "PV : 1982", "PW : 1983", "PX : 1984", "PY : 1985", "PZ : 1986", "QA : 1987", "QB : 1988", "QC : 1989", "QD : 1990", "QE : 1991", "QF : 1992", "QG : 1993", "QH : 1994", "QI : 1995", "QJ : 1996", "QK : 1997", "QL : 1998", "QM : 1999", "QN : 2000", "QO : 2001", "QP : 2002", "QQ : 2003", "QR : 2004", "QS : 2005", "QT : 2006", "QU : 2007", "QV : 2008", "QW : 2009", "QX : 2010", "QY : 2011", "QZ : 2012", "RA : 2013", "RB : 2014", "RC : 2015", "RD : 2016", "RE : 2017", "RF : 2018", "RG : 2019", "RH : 2020", "RI : 2021", "RJ : 2022", "RK : 2023", "RL : 2024", "RM : Did not mention", "RN : Mistakes"
+    ];
+
+    const tagOrderMap = {};
+    customTagOrder.forEach((tag, idx) => {
+      tagOrderMap[tag.trim()] = idx;
+    });
+
+    function compareCustomTags(a, b) {
+      const cleanA = a.trim();
+      const cleanB = b.trim();
+      const posA = tagOrderMap[cleanA] !== undefined ? tagOrderMap[cleanA] : 999999;
+      const posB = tagOrderMap[cleanB] !== undefined ? tagOrderMap[cleanB] : 999999;
+      
+      if (posA !== posB) {
+        return posA - posB;
+      }
+      return cleanA.localeCompare(cleanB);
+    }
 
     // Map CSL types to User-Friendly Display Names
     const typeMapping = {
@@ -435,32 +463,6 @@
       return (2 * intersection) / (bg1.size + bg2.size);
     }
 
-    // Excel Column Header Comparator: A-Z then AA, AB, AC...
-    function getExcelColumnOrderValue(str) {
-      const clean = str.replace(/[^A-Za-z]/g, '').toUpperCase();
-      if (!clean) return { length: 0, val: str.toUpperCase() };
-
-      let val = 0;
-      for (let i = 0; i < clean.length; i++) {
-        val *= 26;
-        val += clean.charCodeAt(i) - 64;
-      }
-      return { length: clean.length, val: val, full: str.toUpperCase() };
-    }
-
-    function compareExcelColumns(a, b) {
-      const objA = getExcelColumnOrderValue(a);
-      const objB = getExcelColumnOrderValue(b);
-
-      if (objA.length !== objB.length) {
-        return objA.length - objB.length;
-      }
-      if (objA.val !== objB.val) {
-        return objA.val - objB.val;
-      }
-      return a.localeCompare(b);
-    }
-
     // Process CSL / Zotero JSON and integrate CSV tags
     function loadData(jsonData, csvParsed) {
       const itemsArray = Array.isArray(jsonData) ? jsonData : (jsonData.items || [jsonData]);
@@ -496,13 +498,14 @@
         });
       }
 
-      // Sort tags using Excel column order
-      allAvailableTags = csvTagColumns.sort(compareExcelColumns);
+      // Sort tags using custom order
+      allAvailableTags = csvTagColumns.sort(compareCustomTags);
 
       // 2. Map JSON items & perform fuzzy matching against CSV items
       const unmatchedJson = [];
       const missingAbstracts = [];
       const missingLinks = [];
+      const missingEither = [];
 
       processedItems = itemsArray.map((item, idx) => {
         const d = item.data || item;
@@ -592,13 +595,19 @@
         // Abstract
         const abstract = d.abstract || d.abstractNote || '';
 
-        // Track missing metadata for Audit Report
+        // Track missing metadata for Audit Reports
         const formattedDisplayNum = String(assignedIndex).padStart(3, '0');
-        if (!abstract.trim()) {
+        const isMissingAbstract = !abstract.trim();
+        const isMissingLinkOrDoi = (!webUrl && !doiUrl);
+
+        if (isMissingAbstract) {
           missingAbstracts.push(`[${formattedDisplayNum}] ${title}`);
         }
-        if (!webUrl && !doiUrl) {
+        if (isMissingLinkOrDoi) {
           missingLinks.push(`[${formattedDisplayNum}] ${title}`);
+        }
+        if (isMissingAbstract || isMissingLinkOrDoi) {
+          missingEither.push(`[${formattedDisplayNum}] ${title} ${isMissingAbstract ? '(No Abstract)' : ''} ${isMissingLinkOrDoi ? '(No Link/DOI)' : ''}`);
         }
 
         // Item Type Display Label
@@ -640,8 +649,8 @@
         };
       }).filter(Boolean);
 
-      // Re-sort all available tags using Excel column order
-      allAvailableTags.sort(compareExcelColumns);
+      // Re-sort all available tags using custom order
+      allAvailableTags.sort(compareCustomTags);
 
       // Initially select all tags so all articles show by default
       selectedTags = new Set(allAvailableTags);
@@ -650,7 +659,7 @@
       const unmatchedCsv = csvItems.filter(c => !c.matched).map(c => `[CSV Row] ${c.rawTitle}`);
 
       renderAuditReport(unmatchedCsv, unmatchedJson);
-      renderMetadataAuditReport(missingAbstracts, missingLinks);
+      renderMetadataAuditReport(missingAbstracts, missingLinks, missingEither);
       renderTagSidebar();
       populateYearFilter();
       expandedAbstracts.clear();
@@ -687,25 +696,28 @@
         : '<li class="text-gray-400 italic">None - All JSON titles matched!</li>';
     }
 
-    // Render Missing Metadata Audit Report
-    function renderMetadataAuditReport(missingAbstracts, missingLinks) {
+    // Render Missing Metadata Audit Report with Third List
+    function renderMetadataAuditReport(missingAbstracts, missingLinks, missingEither) {
       const container = document.getElementById('metadataAuditContainer');
       const summaryText = document.getElementById('metadataSummaryText');
       const abstractCountEl = document.getElementById('missingAbstractCount');
       const linkCountEl = document.getElementById('missingLinkCount');
+      const eitherCountEl = document.getElementById('missingEitherCount');
       const abstractListEl = document.getElementById('missingAbstractList');
       const linkListEl = document.getElementById('missingLinkList');
+      const eitherListEl = document.getElementById('missingEitherList');
 
-      if (missingAbstracts.length === 0 && missingLinks.length === 0) {
+      if (missingAbstracts.length === 0 && missingLinks.length === 0 && missingEither.length === 0) {
         container.classList.add('hidden');
         return;
       }
 
       container.classList.remove('hidden');
-      summaryText.textContent = `Metadata Audit: ${missingAbstracts.length} missing abstract(s) and ${missingLinks.length} missing link/DOI(s) found.`;
+      summaryText.textContent = `Metadata Audit: Found ${missingAbstracts.length} missing abstract(s), ${missingLinks.length} missing link/DOI(s), and ${missingEither.length} missing either.`;
 
       abstractCountEl.textContent = missingAbstracts.length;
       linkCountEl.textContent = missingLinks.length;
+      eitherCountEl.textContent = missingEither.length;
 
       abstractListEl.innerHTML = missingAbstracts.length > 0
         ? missingAbstracts.map(t => `<li>${escapeHtml(t)}</li>`).join('')
@@ -714,6 +726,10 @@
       linkListEl.innerHTML = missingLinks.length > 0
         ? missingLinks.map(t => `<li>${escapeHtml(t)}</li>`).join('')
         : '<li class="text-gray-400 italic">None - All articles have a link or DOI!</li>';
+
+      eitherListEl.innerHTML = missingEither.length > 0
+        ? missingEither.map(t => `<li>${escapeHtml(t)}</li>`).join('')
+        : '<li class="text-gray-400 italic">None - All articles have complete metadata!</li>';
     }
 
     // Render Left Sidebar Tag Checkboxes
