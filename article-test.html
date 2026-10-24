@@ -151,7 +151,7 @@
 
       <!-- Scrollable Checkbox List -->
       <div id="tagCheckboxesContainer" class="overflow-y-auto flex-1 space-y-2 pr-1 text-sm">
-        <!-- Rendered dynamically -->
+        <p class="text-xs text-gray-400 text-center py-4">Loading tags...</p>
       </div>
     </aside>
 
@@ -176,6 +176,30 @@
               <div>
                 <p class="font-semibold text-amber-950 mb-1">JSON Titles without CSV Match (<span id="unmatchedJsonCount">0</span>):</p>
                 <ul id="unmatchedJsonList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-amber-200/50"></ul>
+              </div>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Missing Metadata Audit Report Panel -->
+      <section id="metadataAuditContainer" class="mb-6 hidden">
+        <div class="bg-sky-50 border border-sky-200 rounded-2xl p-5 text-sky-950 shadow-sm">
+          <details class="group">
+            <summary class="font-bold text-sm sm:text-base cursor-pointer flex items-center justify-between select-none">
+              <span class="flex items-center gap-2">
+                📋 <span id="metadataSummaryText">Metadata Audit: Missing Information Found</span>
+              </span>
+              <span class="text-xs bg-sky-200/80 px-2.5 py-1 rounded-full text-sky-900 group-open:rotate-180 transition-transform duration-200">▼</span>
+            </summary>
+            <div class="mt-4 pt-4 border-t border-sky-200/80 text-xs sm:text-sm flex flex-col gap-4">
+              <div>
+                <p class="font-semibold text-sky-900 mb-1">Articles Missing Abstract (<span id="missingAbstractCount">0</span>):</p>
+                <ul id="missingAbstractList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-sky-200/50"></ul>
+              </div>
+              <div>
+                <p class="font-semibold text-sky-900 mb-1">Articles Missing Link or DOI (<span id="missingLinkCount">0</span>):</p>
+                <ul id="missingLinkList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-sky-200/50"></ul>
               </div>
             </div>
           </details>
@@ -241,12 +265,26 @@
 
       <!-- Articles List Container -->
       <section id="articlesContainer" class="flex flex-col gap-6">
-        <!-- Article Cards will be injected here -->
+        <!-- Loading State Indicator -->
+        <div class="bg-white rounded-2xl p-12 text-center text-gray-500 shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-3">
+          <div class="animate-spin text-3xl">⏳</div>
+          <p class="text-lg font-medium text-title-teal">Loading library data and tags, please wait...</p>
+        </div>
       </section>
 
     </main>
 
   </div>
+
+  <!-- Back to Top Button -->
+  <button 
+    id="backToTopBtn" 
+    onclick="scrollToTop()" 
+    class="fixed bottom-6 right-6 bg-[#00667e] hover:bg-[#004f60] text-white p-3.5 rounded-full shadow-lg transition-all duration-300 transform scale-0 opacity-0 focus:outline-none z-50 flex items-center justify-center"
+    title="Back to Top"
+  >
+    <span class="text-lg leading-none">▲</span>
+  </button>
 
   <script>
     // State Variables
@@ -257,6 +295,7 @@
     let selectedYear = 'ALL';
     let currentSort = 'title'; // 'title' | 'year' | 'author'
     let expandedAbstracts = new Set();
+    let expandedTags = new Set(); // Stores item IDs whose tags are expanded
 
     // Map CSL types to User-Friendly Display Names
     const typeMapping = {
@@ -270,6 +309,22 @@
       'post-weblog': 'Web Page',
       'other': 'Other'
     };
+
+    // Scroll-to-Top Button visibility listener
+    window.onscroll = function() {
+      const btn = document.getElementById('backToTopBtn');
+      if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+        btn.classList.remove('scale-0', 'opacity-0');
+        btn.classList.add('scale-100', 'opacity-100');
+      } else {
+        btn.classList.remove('scale-100', 'opacity-100');
+        btn.classList.add('scale-0', 'opacity-0');
+      }
+    };
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
     // Load JSON file and CSV file on startup
     window.onload = function() {
@@ -380,6 +435,32 @@
       return (2 * intersection) / (bg1.size + bg2.size);
     }
 
+    // Excel Column Header Comparator: A-Z then AA, AB, AC...
+    function getExcelColumnOrderValue(str) {
+      const clean = str.replace(/[^A-Za-z]/g, '').toUpperCase();
+      if (!clean) return { length: 0, val: str.toUpperCase() };
+
+      let val = 0;
+      for (let i = 0; i < clean.length; i++) {
+        val *= 26;
+        val += clean.charCodeAt(i) - 64;
+      }
+      return { length: clean.length, val: val, full: str.toUpperCase() };
+    }
+
+    function compareExcelColumns(a, b) {
+      const objA = getExcelColumnOrderValue(a);
+      const objB = getExcelColumnOrderValue(b);
+
+      if (objA.length !== objB.length) {
+        return objA.length - objB.length;
+      }
+      if (objA.val !== objB.val) {
+        return objA.val - objB.val;
+      }
+      return a.localeCompare(b);
+    }
+
     // Process CSL / Zotero JSON and integrate CSV tags
     function loadData(jsonData, csvParsed) {
       const itemsArray = Array.isArray(jsonData) ? jsonData : (jsonData.items || [jsonData]);
@@ -389,7 +470,6 @@
       let csvTagColumns = [];
       
       if (csvParsed.headers && csvParsed.headers.length > 1) {
-        // Tag columns are columns 1 onward in exact CSV column order
         csvTagColumns = csvParsed.headers.slice(1).map(h => h.trim()).filter(Boolean);
 
         csvParsed.rows.forEach(row => {
@@ -416,11 +496,13 @@
         });
       }
 
-      // Keep tags in exact order of CSV column headers
-      allAvailableTags = csvTagColumns;
+      // Sort tags using Excel column order
+      allAvailableTags = csvTagColumns.sort(compareExcelColumns);
 
       // 2. Map JSON items & perform fuzzy matching against CSV items
       const unmatchedJson = [];
+      const missingAbstracts = [];
+      const missingLinks = [];
 
       processedItems = itemsArray.map((item, idx) => {
         const d = item.data || item;
@@ -510,6 +592,15 @@
         // Abstract
         const abstract = d.abstract || d.abstractNote || '';
 
+        // Track missing metadata for Audit Report
+        const formattedDisplayNum = String(assignedIndex).padStart(3, '0');
+        if (!abstract.trim()) {
+          missingAbstracts.push(`[${formattedDisplayNum}] ${title}`);
+        }
+        if (!webUrl && !doiUrl) {
+          missingLinks.push(`[${formattedDisplayNum}] ${title}`);
+        }
+
         // Item Type Display Label
         const rawType = (d.type || d.itemType || 'other').toLowerCase();
         const itemTypeDisplay = typeMapping[rawType] || 'Other';
@@ -524,7 +615,7 @@
           jsonTags = d.tags.map(t => typeof t === 'string' ? t.trim() : (t.tag || '')).filter(Boolean);
         }
 
-        // Combine Tags (ensure any extra JSON tags are appended if not already in CSV tag columns)
+        // Combine Tags
         const combinedTags = Array.from(new Set([...csvTags, ...jsonTags]));
         combinedTags.forEach(t => {
           if (!allAvailableTags.includes(t)) {
@@ -549,17 +640,80 @@
         };
       }).filter(Boolean);
 
+      // Re-sort all available tags using Excel column order
+      allAvailableTags.sort(compareExcelColumns);
+
       // Initially select all tags so all articles show by default
       selectedTags = new Set(allAvailableTags);
 
       // Collect unmatched CSV items
-      const unmatchedCsv = csvItems.filter(c => !c.matched).map(c => c.rawTitle);
+      const unmatchedCsv = csvItems.filter(c => !c.matched).map(c => `[CSV Row] ${c.rawTitle}`);
 
       renderAuditReport(unmatchedCsv, unmatchedJson);
+      renderMetadataAuditReport(missingAbstracts, missingLinks);
       renderTagSidebar();
       populateYearFilter();
       expandedAbstracts.clear();
+      expandedTags.clear();
       handleFilterAndSort();
+    }
+
+    // Render Unmatched Title Audit Report at Top
+    function renderAuditReport(unmatchedCsv, unmatchedJson) {
+      const container = document.getElementById('auditReportContainer');
+      const summaryText = document.getElementById('auditSummaryText');
+      const csvCountEl = document.getElementById('unmatchedCsvCount');
+      const jsonCountEl = document.getElementById('unmatchedJsonCount');
+      const csvListEl = document.getElementById('unmatchedCsvList');
+      const jsonListEl = document.getElementById('unmatchedJsonList');
+
+      if (unmatchedCsv.length === 0 && unmatchedJson.length === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      container.classList.remove('hidden');
+      summaryText.textContent = `Matching Audit: ${unmatchedCsv.length} CSV title(s) and ${unmatchedJson.length} JSON title(s) remained unmatched.`;
+      
+      csvCountEl.textContent = unmatchedCsv.length;
+      jsonCountEl.textContent = unmatchedJson.length;
+
+      csvListEl.innerHTML = unmatchedCsv.length > 0 
+        ? unmatchedCsv.map(t => `<li>${escapeHtml(t)}</li>`).join('') 
+        : '<li class="text-gray-400 italic">None - All CSV titles matched!</li>';
+
+      jsonListEl.innerHTML = unmatchedJson.length > 0 
+        ? unmatchedJson.map(t => `<li>${escapeHtml(t)}</li>`).join('') 
+        : '<li class="text-gray-400 italic">None - All JSON titles matched!</li>';
+    }
+
+    // Render Missing Metadata Audit Report
+    function renderMetadataAuditReport(missingAbstracts, missingLinks) {
+      const container = document.getElementById('metadataAuditContainer');
+      const summaryText = document.getElementById('metadataSummaryText');
+      const abstractCountEl = document.getElementById('missingAbstractCount');
+      const linkCountEl = document.getElementById('missingLinkCount');
+      const abstractListEl = document.getElementById('missingAbstractList');
+      const linkListEl = document.getElementById('missingLinkList');
+
+      if (missingAbstracts.length === 0 && missingLinks.length === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      container.classList.remove('hidden');
+      summaryText.textContent = `Metadata Audit: ${missingAbstracts.length} missing abstract(s) and ${missingLinks.length} missing link/DOI(s) found.`;
+
+      abstractCountEl.textContent = missingAbstracts.length;
+      linkCountEl.textContent = missingLinks.length;
+
+      abstractListEl.innerHTML = missingAbstracts.length > 0
+        ? missingAbstracts.map(t => `<li>${escapeHtml(t)}</li>`).join('')
+        : '<li class="text-gray-400 italic">None - All articles have abstracts!</li>';
+
+      linkListEl.innerHTML = missingLinks.length > 0
+        ? missingLinks.map(t => `<li>${escapeHtml(t)}</li>`).join('')
+        : '<li class="text-gray-400 italic">None - All articles have a link or DOI!</li>';
     }
 
     // Render Left Sidebar Tag Checkboxes
@@ -622,35 +776,6 @@
       selectedTags.clear();
       renderTagSidebar();
       handleFilterAndSort();
-    }
-
-    // Render Unmatched Audit Report at Top
-    function renderAuditReport(unmatchedCsv, unmatchedJson) {
-      const container = document.getElementById('auditReportContainer');
-      const summaryText = document.getElementById('auditSummaryText');
-      const csvCountEl = document.getElementById('unmatchedCsvCount');
-      const jsonCountEl = document.getElementById('unmatchedJsonCount');
-      const csvListEl = document.getElementById('unmatchedCsvList');
-      const jsonListEl = document.getElementById('unmatchedJsonList');
-
-      if (unmatchedCsv.length === 0 && unmatchedJson.length === 0) {
-        container.classList.add('hidden');
-        return;
-      }
-
-      container.classList.remove('hidden');
-      summaryText.textContent = `Matching Audit: ${unmatchedCsv.length} CSV title(s) and ${unmatchedJson.length} JSON title(s) remained unmatched.`;
-      
-      csvCountEl.textContent = unmatchedCsv.length;
-      jsonCountEl.textContent = unmatchedJson.length;
-
-      csvListEl.innerHTML = unmatchedCsv.length > 0 
-        ? unmatchedCsv.map(t => `<li>${escapeHtml(t)}</li>`).join('') 
-        : '<li class="text-gray-400 italic">None - All CSV titles matched!</li>';
-
-      jsonListEl.innerHTML = unmatchedJson.length > 0 
-        ? unmatchedJson.map(t => `<li>${escapeHtml(t)}</li>`).join('') 
-        : '<li class="text-gray-400 italic">None - All JSON titles matched!</li>';
     }
 
     // Populate Year Filter Dropdown
@@ -782,6 +907,7 @@
         // Permanent CSV Index Number padded to 3 digits (e.g. 001, 002...)
         const displayIndex = String(item.originalIndex).padStart(3, '0');
         const isAbstractExpanded = expandedAbstracts.has(item.id);
+        const isTagsExpanded = expandedTags.has(item.id);
 
         card.innerHTML = `
           <!-- Left Index Number -->
@@ -849,10 +975,20 @@
               </div>
             ` : ''}
 
-            <!-- Tags / Keywords Badges -->
+            <!-- Tags Collapsible Toggle -->
             ${item.tags.length > 0 ? `
-              <div class="mt-3 flex flex-wrap gap-1">
-                ${item.tags.map(tag => `<span class="tag-badge">${escapeHtml(tag)}</span>`).join('')}
+              <div class="mt-3">
+                <button 
+                  onclick="toggleTags('${item.id}')" 
+                  class="text-teal-700 hover:text-teal-900 font-semibold text-sm flex items-center gap-1 focus:outline-none"
+                >
+                  <span class="text-xs">${isTagsExpanded ? '▲' : '▼'}</span> Tags (${item.tags.length})
+                </button>
+                ${isTagsExpanded ? `
+                  <div class="mt-2 flex flex-wrap gap-1 p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                    ${item.tags.map(tag => `<span class="tag-badge">${escapeHtml(tag)}</span>`).join('')}
+                  </div>
+                ` : ''}
               </div>
             ` : ''}
 
@@ -869,6 +1005,16 @@
         expandedAbstracts.delete(itemId);
       } else {
         expandedAbstracts.add(itemId);
+      }
+      handleFilterAndSort();
+    }
+
+    // Toggle Tags Visibility
+    function toggleTags(itemId) {
+      if (expandedTags.has(itemId)) {
+        expandedTags.delete(itemId);
+      } else {
+        expandedTags.add(itemId);
       }
       handleFilterAndSort();
     }
