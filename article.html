@@ -158,54 +158,6 @@
     <!-- Main Content Area -->
     <main class="flex-1 w-full min-w-0">
 
-      <!-- Unmatched Titles Audit Report -->
-      <section id="auditReportContainer" class="mb-6 hidden">
-        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-amber-900 shadow-sm">
-          <details class="group">
-            <summary class="font-bold text-sm sm:text-base cursor-pointer flex items-center justify-between select-none">
-              <span class="flex items-center gap-2">
-                ⚠️ <span id="auditSummaryText">Matching Report: Unmatched Items Found</span>
-              </span>
-              <span class="text-xs bg-amber-200/80 px-2.5 py-1 rounded-full text-amber-900 group-open:rotate-180 transition-transform duration-200">▼</span>
-            </summary>
-            <div class="mt-4 pt-4 border-t border-amber-200/80 text-xs sm:text-sm flex flex-col gap-4">
-              <div>
-                <p class="font-semibold text-amber-950 mb-1">CSV Titles without JSON Match (<span id="unmatchedCsvCount">0</span>):</p>
-                <ul id="unmatchedCsvList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-amber-200/50"></ul>
-              </div>
-              <div>
-                <p class="font-semibold text-amber-950 mb-1">JSON Titles without CSV Match (<span id="unmatchedJsonCount">0</span>):</p>
-                <ul id="unmatchedJsonList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-amber-200/50"></ul>
-              </div>
-            </div>
-          </details>
-        </div>
-      </section>
-
-      <!-- Missing Metadata Audit Report Panel -->
-      <section id="metadataAuditContainer" class="mb-6 hidden">
-        <div class="bg-sky-50 border border-sky-200 rounded-2xl p-5 text-sky-950 shadow-sm">
-          <details class="group">
-            <summary class="font-bold text-sm sm:text-base cursor-pointer flex items-center justify-between select-none">
-              <span class="flex items-center gap-2">
-                📋 <span id="metadataSummaryText">Metadata Audit: Missing Information Found</span>
-              </span>
-              <span class="text-xs bg-sky-200/80 px-2.5 py-1 rounded-full text-sky-900 group-open:rotate-180 transition-transform duration-200">▼</span>
-            </summary>
-            <div class="mt-4 pt-4 border-t border-sky-200/80 text-xs sm:text-sm flex flex-col gap-4">
-              <div>
-                <p class="font-semibold text-sky-900 mb-1">Articles Missing Abstract (<span id="missingAbstractCount">0</span>):</p>
-                <ul id="missingAbstractList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-sky-200/50"></ul>
-              </div>
-              <div>
-                <p class="font-semibold text-sky-900 mb-1">Articles Missing Link or DOI (<span id="missingLinkCount">0</span>):</p>
-                <ul id="missingLinkList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-sky-200/50"></ul>
-              </div>
-            </div>
-          </details>
-        </div>
-      </section>
-
       <!-- Search and Controls -->
       <section class="flex flex-col items-center gap-4 mb-8">
         
@@ -494,14 +446,10 @@
         });
       }
 
-      // Sort tags using the explicit custom order array
+      // Sort tags using custom order
       allAvailableTags = csvTagColumns.sort(compareCustomTags);
 
       // 2. Map JSON items & perform fuzzy matching against CSV items
-      const unmatchedJson = [];
-      const missingAbstracts = [];
-      const missingLinks = [];
-
       processedItems = itemsArray.map((item, idx) => {
         const d = item.data || item;
 
@@ -537,8 +485,6 @@
           if (bestCsvMatch.csvIndexNum !== null) {
             assignedIndex = bestCsvMatch.csvIndexNum;
           }
-        } else {
-          unmatchedJson.push(title);
         }
 
         // Authors & Last Name extraction
@@ -590,15 +536,6 @@
         // Abstract
         const abstract = d.abstract || d.abstractNote || '';
 
-        // Track missing metadata for Audit Report
-        const formattedDisplayNum = String(assignedIndex).padStart(3, '0');
-        if (!abstract.trim()) {
-          missingAbstracts.push(`[${formattedDisplayNum}] ${title}`);
-        }
-        if (!webUrl && !doiUrl) {
-          missingLinks.push(`[${formattedDisplayNum}] ${title}`);
-        }
-
         // Item Type Display Label
         const rawType = (d.type || d.itemType || 'other').toLowerCase();
         const itemTypeDisplay = typeMapping[rawType] || 'Other';
@@ -644,74 +581,11 @@
       // Initially select all tags so all articles show by default
       selectedTags = new Set(allAvailableTags);
 
-      // Collect unmatched CSV items
-      const unmatchedCsv = csvItems.filter(c => !c.matched).map(c => `[CSV Row] ${c.rawTitle}`);
-
-      renderAuditReport(unmatchedCsv, unmatchedJson);
-      renderMetadataAuditReport(missingAbstracts, missingLinks);
       renderTagSidebar();
       populateYearFilter();
       expandedAbstracts.clear();
       expandedTags.clear();
       handleFilterAndSort();
-    }
-
-    // Render Unmatched Title Audit Report at Top
-    function renderAuditReport(unmatchedCsv, unmatchedJson) {
-      const container = document.getElementById('auditReportContainer');
-      const summaryText = document.getElementById('auditSummaryText');
-      const csvCountEl = document.getElementById('unmatchedCsvCount');
-      const jsonCountEl = document.getElementById('unmatchedJsonCount');
-      const csvListEl = document.getElementById('unmatchedCsvList');
-      const jsonListEl = document.getElementById('unmatchedJsonList');
-
-      if (unmatchedCsv.length === 0 && unmatchedJson.length === 0) {
-        container.classList.add('hidden');
-        return;
-      }
-
-      container.classList.remove('hidden');
-      summaryText.textContent = `Matching Audit: ${unmatchedCsv.length} CSV title(s) and ${unmatchedJson.length} JSON title(s) remained unmatched.`;
-      
-      csvCountEl.textContent = unmatchedCsv.length;
-      jsonCountEl.textContent = unmatchedJson.length;
-
-      csvListEl.innerHTML = unmatchedCsv.length > 0 
-        ? unmatchedCsv.map(t => `<li>${escapeHtml(t)}</li>`).join('') 
-        : '<li class="text-gray-400 italic">None - All CSV titles matched!</li>';
-
-      jsonListEl.innerHTML = unmatchedJson.length > 0 
-        ? unmatchedJson.map(t => `<li>${escapeHtml(t)}</li>`).join('') 
-        : '<li class="text-gray-400 italic">None - All JSON titles matched!</li>';
-    }
-
-    // Render Missing Metadata Audit Report
-    function renderMetadataAuditReport(missingAbstracts, missingLinks) {
-      const container = document.getElementById('metadataAuditContainer');
-      const summaryText = document.getElementById('metadataSummaryText');
-      const abstractCountEl = document.getElementById('missingAbstractCount');
-      const linkCountEl = document.getElementById('missingLinkCount');
-      const abstractListEl = document.getElementById('missingAbstractList');
-      const linkListEl = document.getElementById('missingLinkList');
-
-      if (missingAbstracts.length === 0 && missingLinks.length === 0) {
-        container.classList.add('hidden');
-        return;
-      }
-
-      container.classList.remove('hidden');
-      summaryText.textContent = `Metadata Audit: ${missingAbstracts.length} missing abstract(s) and ${missingLinks.length} missing link/DOI(s) found.`;
-
-      abstractCountEl.textContent = missingAbstracts.length;
-      linkCountEl.textContent = missingLinks.length;
-
-      abstractListEl.innerHTML = missingAbstracts.length > 0
-        ? missingAbstracts.map(t => `<li>${escapeHtml(t)}</li>`).join('')
-        : '<li class="text-gray-400 italic">None - All articles have abstracts!</li>';
-
-      linkListEl.innerHTML = missingLinks.length > 0
-        ? missingLinks.map(t => `<li>${escapeHtml(t)}</li>`).join('')
-        : '<li class="text-gray-400 italic">None - All articles have a link or DOI!</li>';
     }
 
     // Render Left Sidebar Tag Checkboxes
