@@ -79,7 +79,7 @@
 
   <!-- Header Section -->
   <header class="bg-header text-white py-8 px-4 text-center shadow-md relative">
-    <div class="max-w-6xl mx-auto flex flex-col items-center justify-center">
+    <div class="max-w-7xl mx-auto flex flex-col items-center justify-center">
       <div class="flex items-center gap-3 mb-1">
         <!-- Wave Logo Icon -->
         <span class="text-4xl leading-none select-none">🌊</span>
@@ -89,100 +89,143 @@
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="max-w-5xl w-full mx-auto px-4 py-8 flex-1">
+  <!-- Main App Layout (Sidebar + Content) -->
+  <div class="max-w-7xl w-full mx-auto px-4 py-8 flex-1 flex flex-col lg:flex-row gap-8 items-start">
 
-    <!-- Unmatched Titles Audit Report -->
-    <section id="auditReportContainer" class="mb-6 hidden">
-      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-amber-900 shadow-sm">
-        <details class="group">
-          <summary class="font-bold text-sm sm:text-base cursor-pointer flex items-center justify-between select-none">
-            <span class="flex items-center gap-2">
-              ⚠️ <span id="auditSummaryText">Matching Report: Unmatched Items Found</span>
-            </span>
-            <span class="text-xs bg-amber-200/80 px-2.5 py-1 rounded-full text-amber-900 group-open:rotate-180 transition-transform duration-200">▼</span>
-          </summary>
-          <div class="mt-4 pt-4 border-t border-amber-200/80 text-xs sm:text-sm flex flex-col gap-4">
-            <div>
-              <p class="font-semibold text-amber-950 mb-1">CSV Titles without JSON Match (<span id="unmatchedCsvCount">0</span>):</p>
-              <ul id="unmatchedCsvList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-amber-200/50"></ul>
-            </div>
-            <div>
-              <p class="font-semibold text-amber-950 mb-1">JSON Titles without CSV Match (<span id="unmatchedJsonCount">0</span>):</p>
-              <ul id="unmatchedJsonList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-amber-200/50"></ul>
-            </div>
-          </div>
-        </details>
+    <!-- Left Sidebar: Tags Filter Panel -->
+    <aside class="w-full lg:w-80 bg-white rounded-2xl p-6 shadow-sm border border-gray-100 lg:sticky lg:top-8 flex flex-col max-h-[calc(100vh-4rem)]">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+        <h2 class="font-bold text-lg text-title-teal flex items-center gap-2">
+          <span>🏷️</span> Filter by Tags
+        </h2>
+        <span id="selectedTagCountBadge" class="text-xs bg-teal-50 text-teal-800 font-semibold px-2 py-0.5 rounded-full border border-teal-200">0 selected</span>
       </div>
-    </section>
 
-    <!-- Search and Controls -->
-    <section class="flex flex-col items-center gap-4 mb-8">
-      
-      <!-- Search Input -->
-      <div class="w-full max-w-xl">
+      <!-- Tag Action Buttons -->
+      <div class="flex gap-2 mb-4 text-xs">
+        <button onclick="selectAllTags()" class="flex-1 bg-teal-50 hover:bg-teal-100 text-teal-800 font-medium py-1.5 px-3 rounded-lg transition border border-teal-200">
+          Select All
+        </button>
+        <button onclick="deselectAllTags()" class="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium py-1.5 px-3 rounded-lg transition border border-gray-200">
+          Deselect All
+        </button>
+      </div>
+
+      <!-- Tag Search Filter inside Sidebar -->
+      <div class="mb-3">
         <input 
           type="text" 
-          id="searchInput" 
-          placeholder="Search by title or author..." 
-          oninput="handleFilterAndSort()"
-          class="w-full px-5 py-2.5 rounded-full border-2 border-pill-teal bg-white text-gray-800 placeholder-gray-400 text-center sm:text-left text-base shadow-sm transition"
+          id="tagSearchInput" 
+          oninput="renderTagSidebar()" 
+          placeholder="Search tags..." 
+          class="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 focus:bg-white transition"
         >
       </div>
 
-      <!-- Year Filter Dropdown -->
-      <div class="w-auto">
-        <select 
-          id="yearFilter" 
-          onchange="handleFilterAndSort()" 
-          class="px-5 py-1.5 rounded-full border border-teal-600 bg-white text-gray-800 font-medium text-sm shadow-sm cursor-pointer"
-        >
-          <option value="ALL">All Years</option>
-        </select>
-      </div>
-
-      <!-- Item Type Pills -->
-      <div id="itemTypePills" class="flex flex-wrap justify-center gap-2 max-w-4xl text-sm mt-1">
+      <!-- Scrollable Checkbox List -->
+      <div id="tagCheckboxesContainer" class="overflow-y-auto flex-1 space-y-2 pr-1 text-sm">
         <!-- Rendered dynamically -->
       </div>
+    </aside>
 
-      <!-- Sorting Controls -->
-      <div class="flex flex-wrap justify-center gap-2 text-sm mt-2">
-        <button 
-          id="sortTitle" 
-          onclick="setSort('title')" 
-          class="px-4 py-1.5 rounded-full font-medium transition pill-active"
-        >
-          Title A–Z
-        </button>
-        <button 
-          id="sortYear" 
-          onclick="setSort('year')" 
-          class="px-4 py-1.5 rounded-full font-medium transition pill-inactive"
-        >
-          Newest Year
-        </button>
-        <button 
-          id="sortAuthor" 
-          onclick="setSort('author')" 
-          class="px-4 py-1.5 rounded-full font-medium transition pill-inactive"
-        >
-          Author A–Z
-        </button>
-      </div>
+    <!-- Main Content Area -->
+    <main class="flex-1 w-full min-w-0">
 
-    </section>
+      <!-- Unmatched Titles Audit Report -->
+      <section id="auditReportContainer" class="mb-6 hidden">
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-amber-900 shadow-sm">
+          <details class="group">
+            <summary class="font-bold text-sm sm:text-base cursor-pointer flex items-center justify-between select-none">
+              <span class="flex items-center gap-2">
+                ⚠️ <span id="auditSummaryText">Matching Report: Unmatched Items Found</span>
+              </span>
+              <span class="text-xs bg-amber-200/80 px-2.5 py-1 rounded-full text-amber-900 group-open:rotate-180 transition-transform duration-200">▼</span>
+            </summary>
+            <div class="mt-4 pt-4 border-t border-amber-200/80 text-xs sm:text-sm flex flex-col gap-4">
+              <div>
+                <p class="font-semibold text-amber-950 mb-1">CSV Titles without JSON Match (<span id="unmatchedCsvCount">0</span>):</p>
+                <ul id="unmatchedCsvList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-amber-200/50"></ul>
+              </div>
+              <div>
+                <p class="font-semibold text-amber-950 mb-1">JSON Titles without CSV Match (<span id="unmatchedJsonCount">0</span>):</p>
+                <ul id="unmatchedJsonList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-amber-200/50"></ul>
+              </div>
+            </div>
+          </details>
+        </div>
+      </section>
 
-    <!-- Articles List Container -->
-    <section id="articlesContainer" class="flex flex-col gap-6">
-      <!-- Article Cards will be injected here -->
-    </section>
+      <!-- Search and Controls -->
+      <section class="flex flex-col items-center gap-4 mb-8">
+        
+        <!-- Search Input -->
+        <div class="w-full max-w-xl">
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Search by title or author..." 
+            oninput="handleFilterAndSort()"
+            class="w-full px-5 py-2.5 rounded-full border-2 border-pill-teal bg-white text-gray-800 placeholder-gray-400 text-center sm:text-left text-base shadow-sm transition"
+          >
+        </div>
 
-  </main>
+        <!-- Year Filter Dropdown -->
+        <div class="w-auto">
+          <select 
+            id="yearFilter" 
+            onchange="handleFilterAndSort()" 
+            class="px-5 py-1.5 rounded-full border border-teal-600 bg-white text-gray-800 font-medium text-sm shadow-sm cursor-pointer"
+          >
+            <option value="ALL">All Years</option>
+          </select>
+        </div>
+
+        <!-- Item Type Pills -->
+        <div id="itemTypePills" class="flex flex-wrap justify-center gap-2 max-w-4xl text-sm mt-1">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Sorting Controls -->
+        <div class="flex flex-wrap justify-center gap-2 text-sm mt-2">
+          <button 
+            id="sortTitle" 
+            onclick="setSort('title')" 
+            class="px-4 py-1.5 rounded-full font-medium transition pill-active"
+          >
+            Title A–Z
+          </button>
+          <button 
+            id="sortYear" 
+            onclick="setSort('year')" 
+            class="px-4 py-1.5 rounded-full font-medium transition pill-inactive"
+          >
+            Newest Year
+          </button>
+          <button 
+            id="sortAuthor" 
+            onclick="setSort('author')" 
+            class="px-4 py-1.5 rounded-full font-medium transition pill-inactive"
+          >
+            Author A–Z
+          </button>
+        </div>
+
+      </section>
+
+      <!-- Articles List Container -->
+      <section id="articlesContainer" class="flex flex-col gap-6">
+        <!-- Article Cards will be injected here -->
+      </section>
+
+    </main>
+
+  </div>
 
   <script>
     // State Variables
     let processedItems = [];
+    let allAvailableTags = [];
+    let selectedTags = new Set(); // Stores checked tags
     let selectedItemType = 'ALL';
     let selectedYear = 'ALL';
     let currentSort = 'title'; // 'title' | 'year' | 'author'
@@ -333,6 +376,7 @@
 
       // 2. Map JSON items & perform fuzzy matching against CSV items
       const unmatchedJson = [];
+      const tagSet = new Set();
 
       processedItems = itemsArray.map((item, idx) => {
         const d = item.data || item;
@@ -431,8 +475,9 @@
           jsonTags = d.tags.map(t => typeof t === 'string' ? t.trim() : (t.tag || '')).filter(Boolean);
         }
 
-        // Combine Tags (CSV Tags take priority)
+        // Combine Tags
         const combinedTags = Array.from(new Set([...csvTags, ...jsonTags]));
+        combinedTags.forEach(t => tagSet.add(t));
 
         return {
           id: d.id || `item-${idx + 1}`,
@@ -450,14 +495,80 @@
         };
       }).filter(Boolean);
 
+      allAvailableTags = Array.from(tagSet).sort((a, b) => a.localeCompare(b));
+      
+      // Initially select all tags so all articles show by default
+      selectedTags = new Set(allAvailableTags);
+
       // Collect unmatched CSV items
       const unmatchedCsv = csvItems.filter(c => !c.matched).map(c => c.rawTitle);
 
-      // Render Unmatched Audit Report
       renderAuditReport(unmatchedCsv, unmatchedJson);
-
+      renderTagSidebar();
       populateYearFilter();
       expandedAbstracts.clear();
+      handleFilterAndSort();
+    }
+
+    // Render Left Sidebar Tag Checkboxes
+    function renderTagSidebar() {
+      const container = document.getElementById('tagCheckboxesContainer');
+      const searchVal = document.getElementById('tagSearchInput').value.toLowerCase().trim();
+      
+      container.innerHTML = '';
+
+      const filteredTags = allAvailableTags.filter(tag => tag.toLowerCase().includes(searchVal));
+
+      if (filteredTags.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">No matching tags found.</p>`;
+        return;
+      }
+
+      filteredTags.forEach(tag => {
+        const isChecked = selectedTags.has(tag);
+        const labelDiv = document.createElement('label');
+        labelDiv.className = "flex items-center gap-2.5 p-1.5 hover:bg-teal-50/60 rounded-lg cursor-pointer transition select-none text-xs text-gray-700";
+        
+        labelDiv.innerHTML = `
+          <input 
+            type="checkbox" 
+            value="${escapeHtml(tag)}" 
+            ${isChecked ? 'checked' : ''} 
+            onchange="toggleTagSelection('${escapeHtml(tag, true)}', this.checked)"
+            class="rounded border-gray-300 text-teal-700 focus:ring-teal-500 w-4 h-4 cursor-pointer"
+          >
+          <span class="truncate flex-1">${escapeHtml(tag)}</span>
+        `;
+        container.appendChild(labelDiv);
+      });
+
+      // Update badge count
+      const badge = document.getElementById('selectedTagCountBadge');
+      badge.textContent = `${selectedTags.size} of ${allAvailableTags.length} selected`;
+    }
+
+    // Toggle individual tag checkbox
+    function toggleTagSelection(tag, isChecked) {
+      if (isChecked) {
+        selectedTags.add(tag);
+      } else {
+        selectedTags.delete(tag);
+      }
+      renderTagSidebar();
+      handleFilterAndSort();
+    }
+
+    // Select All Tags
+    function selectAllTags() {
+      selectedTags = new Set(allAvailableTags);
+      renderTagSidebar();
+      handleFilterAndSort();
+    }
+
+    // Deselect All Tags
+    function deselectAllTags() {
+      selectedTags.clear();
+      renderTagSidebar();
       handleFilterAndSort();
     }
 
@@ -567,7 +678,15 @@
           selectedYear === 'ALL' || 
           String(item.yearNum) === selectedYear;
 
-        return matchesSearch && matchesYear;
+        // Tag Filter: item must contain at least one of the selected tags (or all tags if desired; here any selected tag intersection)
+        let matchesTags = true;
+        if (selectedTags.size === 0) {
+          matchesTags = false; // if no tags selected, show nothing or allow all? Let's say if 0 selected, show none.
+        } else {
+          matchesTags = item.tags.some(t => selectedTags.has(t));
+        }
+
+        return matchesSearch && matchesYear && matchesTags;
       });
 
       renderItemTypePills(filtered);
@@ -599,7 +718,7 @@
         container.innerHTML = `
           <div class="bg-white rounded-2xl p-12 text-center text-gray-500 shadow-sm border border-gray-100">
             <p class="text-lg font-medium">No matching research articles found.</p>
-            <p class="text-sm text-gray-400 mt-1">Try resetting your search query or filters.</p>
+            <p class="text-sm text-gray-400 mt-1">Try adjusting your search query, year, type, or tag filters.</p>
           </div>
         `;
         return;
@@ -609,7 +728,7 @@
         const card = document.createElement('div');
         card.className = "bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100/80 flex flex-col sm:flex-row items-start gap-4 sm:gap-8 transition hover:shadow-md";
 
-        // Format Index starting from 001 with 3 digits (001, 002, 003...)
+        // Format Index starting from 001 with 3 digits
         const displayIndex = String(index + 1).padStart(3, '0');
         const isAbstractExpanded = expandedAbstracts.has(item.id);
 
@@ -719,14 +838,15 @@
     }
 
     // Security Helper
-    function escapeHtml(str) {
+    function escapeHtml(str, isAttr = false) {
       if (!str) return '';
-      return String(str)
+      const safe = String(str)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+      return isAttr ? safe.replace(/"/g, '&quot;').replace(/'/g, "&#39;") : safe;
     }
   </script>
 </body>
