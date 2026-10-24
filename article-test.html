@@ -343,14 +343,6 @@
       return (2 * intersection) / (bg1.size + bg2.size);
     }
 
-    // Custom sort comparator for tags: length first (A, B... then AA, AB...), then alphabetical
-    function compareTagsLengthAlphabetical(a, b) {
-      if (a.length !== b.length) {
-        return a.length - b.length;
-      }
-      return a.localeCompare(b);
-    }
-
     // Process CSL / Zotero JSON and integrate CSV tags
     function loadData(jsonData, csvParsed) {
       const itemsArray = Array.isArray(jsonData) ? jsonData : (jsonData.items || [jsonData]);
@@ -503,8 +495,7 @@
         };
       }).filter(Boolean);
 
-      // Sort tags by length first (A-Z single letters, then AA, AB...) then alphabetical
-      allAvailableTags = Array.from(tagSet).sort(compareTagsLengthAlphabetical);
+      allAvailableTags = Array.from(tagSet).sort((a, b) => a.localeCompare(b));
       
       // Initially select all tags so all articles show by default
       selectedTags = new Set(allAvailableTags);
@@ -687,9 +678,10 @@
           selectedYear === 'ALL' || 
           String(item.yearNum) === selectedYear;
 
+        // Tag Filter: item must contain at least one of the selected tags (or all tags if desired; here any selected tag intersection)
         let matchesTags = true;
         if (selectedTags.size === 0) {
-          matchesTags = false;
+          matchesTags = false; // if no tags selected, show nothing or allow all? Let's say if 0 selected, show none.
         } else {
           matchesTags = item.tags.some(t => selectedTags.has(t));
         }
@@ -736,6 +728,7 @@
         const card = document.createElement('div');
         card.className = "bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100/80 flex flex-col sm:flex-row items-start gap-4 sm:gap-8 transition hover:shadow-md";
 
+        // Format Index starting from 001 with 3 digits
         const displayIndex = String(index + 1).padStart(3, '0');
         const isAbstractExpanded = expandedAbstracts.has(item.id);
 
@@ -853,7 +846,7 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-      return isAttr ? safe.replace(/"/g, '&quot;').replace(/'/g, "&#039;") : safe;
+      return isAttr ? safe.replace(/"/g, '&quot;').replace(/'/g, "&#39;") : safe;
     }
   </script>
 </body>
