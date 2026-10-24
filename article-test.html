@@ -55,19 +55,6 @@
       background-color: #ccece9;
     }
 
-    /* Missing Filter Pill active state */
-    .pill-missing-active {
-      background-color: #991b1b;
-      color: #ffffff;
-    }
-    .pill-missing-inactive {
-      background-color: #fee2e2;
-      color: #991b1b;
-    }
-    .pill-missing-inactive:hover {
-      background-color: #fca5a5;
-    }
-
     /* Tag badge styling */
     .tag-badge {
       background-color: #e0f2f1;
@@ -105,6 +92,30 @@
   <!-- Main Container -->
   <main class="max-w-5xl w-full mx-auto px-4 py-8 flex-1">
 
+    <!-- Unmatched Titles Audit Report -->
+    <section id="auditReportContainer" class="mb-6 hidden">
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-amber-900 shadow-sm">
+        <details class="group">
+          <summary class="font-bold text-sm sm:text-base cursor-pointer flex items-center justify-between select-none">
+            <span class="flex items-center gap-2">
+              ⚠️ <span id="auditSummaryText">Matching Report: Unmatched Items Found</span>
+            </span>
+            <span class="text-xs bg-amber-200/80 px-2.5 py-1 rounded-full text-amber-900 group-open:rotate-180 transition-transform duration-200">▼</span>
+          </summary>
+          <div class="mt-4 pt-4 border-t border-amber-200/80 text-xs sm:text-sm flex flex-col gap-4">
+            <div>
+              <p class="font-semibold text-amber-950 mb-1">CSV Titles without JSON Match (<span id="unmatchedCsvCount">0</span>):</p>
+              <ul id="unmatchedCsvList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-amber-200/50"></ul>
+            </div>
+            <div>
+              <p class="font-semibold text-amber-950 mb-1">JSON Titles without CSV Match (<span id="unmatchedJsonCount">0</span>):</p>
+              <ul id="unmatchedJsonList" class="list-disc pl-5 max-h-40 overflow-y-auto space-y-1 bg-white/60 p-2 rounded border border-amber-200/50"></ul>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
     <!-- Search and Controls -->
     <section class="flex flex-col items-center gap-4 mb-8">
       
@@ -133,39 +144,6 @@
       <!-- Item Type Pills -->
       <div id="itemTypePills" class="flex flex-wrap justify-center gap-2 max-w-4xl text-sm mt-1">
         <!-- Rendered dynamically -->
-      </div>
-
-      <!-- Missing Data Filter Section -->
-      <div class="flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm mt-1">
-        <span class="font-semibold text-gray-500 mr-1">Filter Missing:</span>
-        <button 
-          id="btnMissingNone" 
-          onclick="setMissingFilter('NONE')" 
-          class="px-3.5 py-1 rounded-full font-medium transition pill-active"
-        >
-          All Items
-        </button>
-        <button 
-          id="btnMissingAbstract" 
-          onclick="setMissingFilter('NO_ABSTRACT')" 
-          class="px-3.5 py-1 rounded-full font-medium transition pill-missing-inactive"
-        >
-          No Abstract
-        </button>
-        <button 
-          id="btnMissingLink" 
-          onclick="setMissingFilter('NO_LINK')" 
-          class="px-3.5 py-1 rounded-full font-medium transition pill-missing-inactive"
-        >
-          No Link
-        </button>
-        <button 
-          id="btnMissingEither" 
-          onclick="setMissingFilter('NO_EITHER')" 
-          class="px-3.5 py-1 rounded-full font-medium transition pill-missing-inactive"
-        >
-          No Abstract OR Link
-        </button>
       </div>
 
       <!-- Sorting Controls -->
@@ -207,7 +185,6 @@
     let processedItems = [];
     let selectedItemType = 'ALL';
     let selectedYear = 'ALL';
-    let selectedMissingFilter = 'NONE'; // 'NONE' | 'NO_ABSTRACT' | 'NO_LINK' | 'NO_EITHER'
     let currentSort = 'title'; // 'title' | 'year' | 'author'
     let expandedAbstracts = new Set();
 
@@ -224,35 +201,139 @@
       'other': 'Other'
     };
 
-    // Load JSON file on startup
+    // Load JSON file and CSV file on startup
     window.onload = function() {
-      fetch('Urban Oceans final 2025.json')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
+      Promise.all([
+        fetch('Urban Oceans final 2025.json').then(res => {
+          if (!res.ok) throw new Error(`JSON status: ${res.status}`);
+          return res.json();
+        }),
+        fetch('article_tags.csv').then(res => {
+          if (!res.ok) throw new Error(`CSV status: ${res.status}`);
+          return res.text();
+        }).catch(err => {
+          console.warn('CSV file fetch failed, proceeding without CSV tags:', err);
+          return null;
         })
-        .then(data => {
-          loadData(data);
-        })
-        .catch(err => {
-          console.error('Error loading JSON file:', err);
-          const container = document.getElementById('articlesContainer');
-          container.innerHTML = `
-            <div class="bg-white rounded-2xl p-12 text-center text-red-600 shadow-sm border border-red-100">
-              <p class="text-lg font-bold">Failed to load "Urban Oceans final 2025.json"</p>
-              <p class="text-sm text-gray-500 mt-2">Please ensure the file is located in the same folder as this HTML file.</p>
-            </div>
-          `;
-        });
+      ])
+      .then(([jsonData, csvText]) => {
+        const csvParsed = csvText ? parseCSV(csvText) : { headers: [], rows: [] };
+        loadData(jsonData, csvParsed);
+      })
+      .catch(err => {
+        console.error('Error loading library data:', err);
+        const container = document.getElementById('articlesContainer');
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl p-12 text-center text-red-600 shadow-sm border border-red-100">
+            <p class="text-lg font-bold">Failed to load data files</p>
+            <p class="text-sm text-gray-500 mt-2">Please ensure "Urban Oceans final 2025.json" (and optionally "article_tags.csv") are located in the same folder as this HTML file.</p>
+          </div>
+        `;
+      });
     };
 
-    // Process CSL / Zotero JSON
-    function loadData(data) {
-      const itemsArray = Array.isArray(data) ? data : (data.items || [data]);
+    // Simple robust CSV parser
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+      if (lines.length === 0) return { headers: [], rows: [] };
 
-      // Map raw items into normalized internal structure
+      const parseLine = (line) => {
+        const result = [];
+        let cur = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(cur.trim());
+            cur = '';
+          } else {
+            cur += char;
+          }
+        }
+        result.push(cur.trim());
+        return result;
+      };
+
+      const headers = parseLine(lines[0]);
+      const rows = lines.slice(1).map(parseLine);
+
+      return { headers, rows };
+    }
+
+    // Title Normalization function to maximize fuzzy matches
+    function normalizeTitle(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/~i~/gi, '')            // remove ~i~ italic tags
+        .replace(/~/g, ' ')              // convert tildes to space
+        .replace(/^\d+\s*:\s*/, '')      // remove leading index numbers e.g. "1 : "
+        .replace(/[^\w\s]/gi, ' ')       // remove punctuation
+        .replace(/\s+/g, ' ')            // normalize whitespace
+        .trim()
+        .toLowerCase();
+    }
+
+    // Dice Coefficient Similarity (0 to 1) for Fuzzy Matching
+    function getSimilarityRatio(s1, s2) {
+      if (!s1 || !s2) return 0;
+      if (s1 === s2) return 1;
+
+      const getBigrams = (str) => {
+        const bigrams = new Set();
+        for (let i = 0; i < str.length - 1; i++) {
+          bigrams.add(str.substring(i, i + 2));
+        }
+        return bigrams;
+      };
+
+      const bg1 = getBigrams(s1);
+      const bg2 = getBigrams(s2);
+      if (bg1.size === 0 || bg2.size === 0) return 0;
+
+      let intersection = 0;
+      bg1.forEach(b => {
+        if (bg2.has(b)) intersection++;
+      });
+
+      return (2 * intersection) / (bg1.size + bg2.size);
+    }
+
+    // Process CSL / Zotero JSON and integrate CSV tags
+    function loadData(jsonData, csvParsed) {
+      const itemsArray = Array.isArray(jsonData) ? jsonData : (jsonData.items || [jsonData]);
+
+      // 1. Process CSV Tags Lookup Table
+      const csvItems = [];
+      if (csvParsed.headers && csvParsed.headers.length > 1) {
+        const tagHeaders = csvParsed.headers.slice(1);
+
+        csvParsed.rows.forEach(row => {
+          if (!row[0]) return;
+          const rawTitle = row[0];
+          const normTitle = normalizeTitle(rawTitle);
+
+          const activeTags = [];
+          tagHeaders.forEach((tagColName, colIdx) => {
+            const val = row[colIdx + 1];
+            if (val === '1' || val === 1) {
+              activeTags.push(tagColName);
+            }
+          });
+
+          csvItems.push({
+            rawTitle,
+            normTitle,
+            activeTags,
+            matched: false
+          });
+        });
+      }
+
+      // 2. Map JSON items & perform fuzzy matching against CSV items
+      const unmatchedJson = [];
+
       processedItems = itemsArray.map((item, idx) => {
         const d = item.data || item;
 
@@ -260,6 +341,32 @@
 
         // Title
         const title = d.title || 'Untitled';
+        const normJsonTitle = normalizeTitle(title);
+
+        // Match against CSV items
+        let bestCsvMatch = null;
+        let maxSimilarity = 0;
+
+        csvItems.forEach(csvObj => {
+          if (csvObj.normTitle === normJsonTitle) {
+            bestCsvMatch = csvObj;
+            maxSimilarity = 1.0;
+            return;
+          }
+          const sim = getSimilarityRatio(normJsonTitle, csvObj.normTitle);
+          if (sim > maxSimilarity && sim >= 0.70) {
+            maxSimilarity = sim;
+            bestCsvMatch = csvObj;
+          }
+        });
+
+        let csvTags = [];
+        if (bestCsvMatch) {
+          csvTags = bestCsvMatch.activeTags;
+          bestCsvMatch.matched = true;
+        } else {
+          unmatchedJson.push(title);
+        }
 
         // Authors & Last Name extraction
         let authors = 'N/A';
@@ -278,6 +385,9 @@
           firstAuthorLastName = (d.creators[0].lastName || d.creators[0].name || '').toLowerCase();
         }
 
+        // Publication / Journal Name
+        const publication = d['container-title'] || d.publicationTitle || d.publisher || d.journalAbbreviation || '';
+
         // Year
         let yearNum = 0;
         let yearStr = 'N/A';
@@ -292,49 +402,92 @@
         }
         if (yearNum > 0) yearStr = String(yearNum);
 
-        // URL / DOI
-        let linkUrl = '';
+        // Separate Web URL vs DOI
+        let webUrl = '';
+        let doiUrl = '';
+
+        if (d.URL || d.url) {
+          webUrl = d.URL || d.url;
+        }
         if (d.DOI) {
           const cleanDoi = d.DOI.replace(/^https?:\/\/doi\.org\//, '');
-          linkUrl = `https://doi.org/${cleanDoi}`;
-        } else if (d.URL || d.url) {
-          linkUrl = d.URL || d.url;
+          doiUrl = `https://doi.org/${cleanDoi}`;
         }
 
         // Abstract
-        const abstract = (d.abstract || d.abstractNote || '').trim();
+        const abstract = d.abstract || d.abstractNote || '';
 
         // Item Type Display Label
         const rawType = (d.type || d.itemType || 'other').toLowerCase();
         const itemTypeDisplay = typeMapping[rawType] || 'Other';
 
-        // Tags / Keywords
-        let tags = [];
+        // Direct Tags / Keywords from JSON if present
+        let jsonTags = [];
         if (typeof d.keyword === 'string' && d.keyword.trim().length > 0) {
-          tags = d.keyword.split(/[,;]+/).map(t => t.trim()).filter(Boolean);
+          jsonTags = d.keyword.split(/[,;]+/).map(t => t.trim()).filter(Boolean);
         } else if (Array.isArray(d.keywords)) {
-          tags = d.keywords.map(k => typeof k === 'string' ? k.trim() : (k.tag || '')).filter(Boolean);
+          jsonTags = d.keywords.map(k => typeof k === 'string' ? k.trim() : (k.tag || '')).filter(Boolean);
         } else if (Array.isArray(d.tags)) {
-          tags = d.tags.map(t => typeof t === 'string' ? t.trim() : (t.tag || '')).filter(Boolean);
+          jsonTags = d.tags.map(t => typeof t === 'string' ? t.trim() : (t.tag || '')).filter(Boolean);
         }
+
+        // Combine Tags (CSV Tags take priority)
+        const combinedTags = Array.from(new Set([...csvTags, ...jsonTags]));
 
         return {
           id: d.id || `item-${idx + 1}`,
           title,
           authors,
           firstAuthorLastName,
+          publication,
           yearNum,
           yearStr,
-          linkUrl,
+          webUrl,
+          doiUrl,
           abstract,
           itemTypeDisplay,
-          tags
+          tags: combinedTags
         };
       }).filter(Boolean);
+
+      // Collect unmatched CSV items
+      const unmatchedCsv = csvItems.filter(c => !c.matched).map(c => c.rawTitle);
+
+      // Render Unmatched Audit Report
+      renderAuditReport(unmatchedCsv, unmatchedJson);
 
       populateYearFilter();
       expandedAbstracts.clear();
       handleFilterAndSort();
+    }
+
+    // Render Unmatched Audit Report at Top
+    function renderAuditReport(unmatchedCsv, unmatchedJson) {
+      const container = document.getElementById('auditReportContainer');
+      const summaryText = document.getElementById('auditSummaryText');
+      const csvCountEl = document.getElementById('unmatchedCsvCount');
+      const jsonCountEl = document.getElementById('unmatchedJsonCount');
+      const csvListEl = document.getElementById('unmatchedCsvList');
+      const jsonListEl = document.getElementById('unmatchedJsonList');
+
+      if (unmatchedCsv.length === 0 && unmatchedJson.length === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      container.classList.remove('hidden');
+      summaryText.textContent = `Matching Audit: ${unmatchedCsv.length} CSV title(s) and ${unmatchedJson.length} JSON title(s) remained unmatched.`;
+      
+      csvCountEl.textContent = unmatchedCsv.length;
+      jsonCountEl.textContent = unmatchedJson.length;
+
+      csvListEl.innerHTML = unmatchedCsv.length > 0 
+        ? unmatchedCsv.map(t => `<li>${escapeHtml(t)}</li>`).join('') 
+        : '<li class="text-gray-400 italic">None - All CSV titles matched!</li>';
+
+      jsonListEl.innerHTML = unmatchedJson.length > 0 
+        ? unmatchedJson.map(t => `<li>${escapeHtml(t)}</li>`).join('') 
+        : '<li class="text-gray-400 italic">None - All JSON titles matched!</li>';
     }
 
     // Populate Year Filter Dropdown
@@ -414,20 +567,7 @@
           selectedYear === 'ALL' || 
           String(item.yearNum) === selectedYear;
 
-        // Missing Data Filter Conditions
-        let matchesMissing = true;
-        const hasNoAbstract = !item.abstract;
-        const hasNoLink = !item.linkUrl;
-
-        if (selectedMissingFilter === 'NO_ABSTRACT') {
-          matchesMissing = hasNoAbstract;
-        } else if (selectedMissingFilter === 'NO_LINK') {
-          matchesMissing = hasNoLink;
-        } else if (selectedMissingFilter === 'NO_EITHER') {
-          matchesMissing = hasNoAbstract || hasNoLink;
-        }
-
-        return matchesSearch && matchesYear && matchesMissing;
+        return matchesSearch && matchesYear;
       });
 
       renderItemTypePills(filtered);
@@ -469,19 +609,20 @@
         const card = document.createElement('div');
         card.className = "bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100/80 flex flex-col sm:flex-row items-start gap-4 sm:gap-8 transition hover:shadow-md";
 
-        const displayIndex = index + 1;
+        // Format Index with 3 leading zeros e.g. 010, 011
+        const displayIndex = String(index + 10).padStart(3, '0');
         const isAbstractExpanded = expandedAbstracts.has(item.id);
 
         card.innerHTML = `
           <!-- Left Index Number -->
-          <div class="text-index-teal font-bold text-lg sm:text-xl min-w-[40px] pt-0.5">
+          <div class="text-index-teal font-bold text-lg sm:text-xl min-w-[45px] pt-0.5">
             ${displayIndex}
           </div>
 
           <!-- Content Body -->
           <div class="flex-1 min-w-0">
             <!-- Article Title -->
-            <h2 class="text-title-teal text-xl font-bold leading-snug mb-2">
+            <h2 class="text-title-teal text-xl font-bold leading-snug mb-1">
               ${escapeHtml(item.title)}
             </h2>
 
@@ -490,22 +631,34 @@
               ${escapeHtml(item.authors)}
             </div>
 
-            <!-- Year -->
+            <!-- Journal / Publication and Year -->
             <div class="text-gray-500 text-sm italic mb-3">
-              | ${item.yearStr}
+              ${item.publication ? `${escapeHtml(item.publication)} | ` : ''}${item.yearStr}
             </div>
 
-            <!-- DOI / Link Button -->
-            ${item.linkUrl ? `
-              <div class="mb-3">
-                <a 
-                  href="${escapeHtml(item.linkUrl)}" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  class="inline-block bg-[#004f60] hover:bg-[#003946] text-white text-xs font-semibold px-3 py-1 rounded transition shadow-sm"
-                >
-                  Link
-                </a>
+            <!-- Link and DOI Buttons -->
+            ${(item.webUrl || item.doiUrl) ? `
+              <div class="flex items-center gap-2 mb-3">
+                ${item.webUrl ? `
+                  <a 
+                    href="${escapeHtml(item.webUrl)}" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    class="inline-block bg-[#0f3842] hover:bg-[#002730] text-white text-xs font-semibold px-3 py-1 rounded transition shadow-sm"
+                  >
+                    Link
+                  </a>
+                ` : ''}
+                ${item.doiUrl ? `
+                  <a 
+                    href="${escapeHtml(item.doiUrl)}" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    class="inline-block bg-[#0f3842] hover:bg-[#002730] text-white text-xs font-semibold px-3 py-1 rounded transition shadow-sm"
+                  >
+                    DOI
+                  </a>
+                ` : ''}
               </div>
             ` : ''}
 
@@ -547,23 +700,6 @@
       } else {
         expandedAbstracts.add(itemId);
       }
-      handleFilterAndSort();
-    }
-
-    // Set Missing Data Filter Mode
-    function setMissingFilter(filterMode) {
-      selectedMissingFilter = filterMode;
-
-      const btnNone = document.getElementById('btnMissingNone');
-      const btnAbstract = document.getElementById('btnMissingAbstract');
-      const btnLink = document.getElementById('btnMissingLink');
-      const btnEither = document.getElementById('btnMissingEither');
-
-      btnNone.className = `px-3.5 py-1 rounded-full font-medium transition ${filterMode === 'NONE' ? 'pill-active' : 'pill-inactive'}`;
-      btnAbstract.className = `px-3.5 py-1 rounded-full font-medium transition ${filterMode === 'NO_ABSTRACT' ? 'pill-missing-active' : 'pill-missing-inactive'}`;
-      btnLink.className = `px-3.5 py-1 rounded-full font-medium transition ${filterMode === 'NO_LINK' ? 'pill-missing-active' : 'pill-missing-inactive'}`;
-      btnEither.className = `px-3.5 py-1 rounded-full font-medium transition ${filterMode === 'NO_EITHER' ? 'pill-missing-active' : 'pill-missing-inactive'}`;
-
       handleFilterAndSort();
     }
 
