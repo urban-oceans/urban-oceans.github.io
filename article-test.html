@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metro Vancouver Urban Oceans Literature Library</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #f3f7f8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Primary palette matching design */
+    .bg-header {
+      background-color: #00667e;
+    }
+    .text-title-teal {
+      color: #0c4a5c;
+    }
+    .text-index-teal {
+      color: #0a6b7d;
+    }
+    .border-pill-teal {
+      border-color: #007a93;
+    }
+    
+    /* Pill button active state */
+    .pill-active {
+      background-color: #0f3842;
+      color: #ffffff;
+    }
+    .pill-inactive {
+      background-color: #e0f2f1;
+      color: #0f3842;
+    }
+    .pill-inactive:hover {
+      background-color: #ccece9;
+    }
+
+    /* Missing Filter Pill active state */
+    .pill-missing-active {
+      background-color: #991b1b;
+      color: #ffffff;
+    }
+    .pill-missing-inactive {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+    .pill-missing-inactive:hover {
+      background-color: #fca5a5;
+    }
+
+    /* Tag badge styling */
+    .tag-badge {
+      background-color: #e0f2f1;
+      color: #0b5061;
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-right: 6px;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    /* Custom focus states */
+    input:focus, select:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 102, 126, 0.25);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header Section -->
+  <header class="bg-header text-white py-8 px-4 text-center shadow-md relative">
+    <div class="max-w-6xl mx-auto flex flex-col items-center justify-center">
+      <div class="flex items-center gap-3 mb-1">
+        <!-- Wave Logo Icon -->
+        <span class="text-4xl leading-none select-none">🌊</span>
+        <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">Urban Oceans Library</h1>
+      </div>
+      <p class="text-teal-100 text-sm sm:text-base font-normal">Metro Vancouver Urban Oceans Literature Library</p>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-5xl w-full mx-auto px-4 py-8 flex-1">
+
+    <!-- Search and Controls -->
+    <section class="flex flex-col items-center gap-4 mb-8">
+      
+      <!-- Search Input -->
+      <div class="w-full max-w-xl">
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="Search by title or author..." 
+          oninput="handleFilterAndSort()"
+          class="w-full px-5 py-2.5 rounded-full border-2 border-pill-teal bg-white text-gray-800 placeholder-gray-400 text-center sm:text-left text-base shadow-sm transition"
+        >
+      </div>
+
+      <!-- Year Filter Dropdown -->
+      <div class="w-auto">
+        <select 
+          id="yearFilter" 
+          onchange="handleFilterAndSort()" 
+          class="px-5 py-1.5 rounded-full border border-teal-600 bg-white text-gray-800 font-medium text-sm shadow-sm cursor-pointer"
+        >
+          <option value="ALL">All Years</option>
+        </select>
+      </div>
+
+      <!-- Item Type Pills -->
+      <div id="itemTypePills" class="flex flex-wrap justify-center gap-2 max-w-4xl text-sm mt-1">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Missing Data Filter Section -->
+      <div class="flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm mt-1">
+        <span class="font-semibold text-gray-500 mr-1">Filter Missing:</span>
+        <button 
+          id="btnMissingNone" 
+          onclick="setMissingFilter('NONE')" 
+          class="px-3.5 py-1 rounded-full font-medium transition pill-active"
+        >
+          All Items
+        </button>
+        <button 
+          id="btnMissingAbstract" 
+          onclick="setMissingFilter('NO_ABSTRACT')" 
+          class="px-3.5 py-1 rounded-full font-medium transition pill-missing-inactive"
+        >
+          No Abstract
+        </button>
+        <button 
+          id="btnMissingLink" 
+          onclick="setMissingFilter('NO_LINK')" 
+          class="px-3.5 py-1 rounded-full font-medium transition pill-missing-inactive"
+        >
+          No Link
+        </button>
+        <button 
+          id="btnMissingEither" 
+          onclick="setMissingFilter('NO_EITHER')" 
+          class="px-3.5 py-1 rounded-full font-medium transition pill-missing-inactive"
+        >
+          No Abstract OR Link
+        </button>
+      </div>
+
+      <!-- Sorting Controls -->
+      <div class="flex flex-wrap justify-center gap-2 text-sm mt-2">
+        <button 
+          id="sortTitle" 
+          onclick="setSort('title')" 
+          class="px-4 py-1.5 rounded-full font-medium transition pill-active"
+        >
+          Title A–Z
+        </button>
+        <button 
+          id="sortYear" 
+          onclick="setSort('year')" 
+          class="px-4 py-1.5 rounded-full font-medium transition pill-inactive"
+        >
+          Newest Year
+        </button>
+        <button 
+          id="sortAuthor" 
+          onclick="setSort('author')" 
+          class="px-4 py-1.5 rounded-full font-medium transition pill-inactive"
+        >
+          Author A–Z
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Articles List Container -->
+    <section id="articlesContainer" class="flex flex-col gap-6">
+      <!-- Article Cards will be injected here -->
+    </section>
+
+  </main>
+
+  <script>
+    // State Variables
+    let processedItems = [];
+    let selectedItemType = 'ALL';
+    let selectedYear = 'ALL';
+    let selectedMissingFilter = 'NONE'; // 'NONE' | 'NO_ABSTRACT' | 'NO_LINK' | 'NO_EITHER'
+    let currentSort = 'title'; // 'title' | 'year' | 'author'
+    let expandedAbstracts = new Set();
+
+    // Map CSL types to User-Friendly Display Names
+    const typeMapping = {
+      'book': 'Book',
+      'chapter': 'Book Chapter',
+      'paper-conference': 'Conference Paper',
+      'article-journal': 'Journal Article',
+      'article-newspaper': 'Newspaper Article',
+      'report': 'Report',
+      'webpage': 'Web Page',
+      'post-weblog': 'Web Page',
+      'other': 'Other'
+    };
+
+    // Load JSON file on startup
+    window.onload = function() {
+      fetch('Urban Oceans final 2025.json')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          loadData(data);
+        })
+        .catch(err => {
+          console.error('Error loading JSON file:', err);
+          const container = document.getElementById('articlesContainer');
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl p-12 text-center text-red-600 shadow-sm border border-red-100">
+              <p class="text-lg font-bold">Failed to load "Urban Oceans final 2025.json"</p>
+              <p class="text-sm text-gray-500 mt-2">Please ensure the file is located in the same folder as this HTML file.</p>
+            </div>
+          `;
+        });
+    };
+
+    // Process CSL / Zotero JSON
+    function loadData(data) {
+      const itemsArray = Array.isArray(data) ? data : (data.items || [data]);
+
+      // Map raw items into normalized internal structure
+      processedItems = itemsArray.map((item, idx) => {
+        const d = item.data || item;
+
+        if (d.itemType === 'attachment' || d.itemType === 'note') return null;
+
+        // Title
+        const title = d.title || 'Untitled';
+
+        // Authors & Last Name extraction
+        let authors = 'N/A';
+        let firstAuthorLastName = '';
+        if (Array.isArray(d.author) && d.author.length > 0) {
+          authors = d.author
+            .map(a => a.literal || `${a.given || ''} ${a.family || ''}`.trim())
+            .filter(Boolean)
+            .join(', ');
+          firstAuthorLastName = (d.author[0].family || d.author[0].literal || '').toLowerCase();
+        } else if (Array.isArray(d.creators) && d.creators.length > 0) {
+          authors = d.creators
+            .map(c => c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim())
+            .filter(Boolean)
+            .join(', ');
+          firstAuthorLastName = (d.creators[0].lastName || d.creators[0].name || '').toLowerCase();
+        }
+
+        // Year
+        let yearNum = 0;
+        let yearStr = 'N/A';
+        const dateRaw = d.issued || d.date;
+        if (dateRaw) {
+          if (dateRaw['date-parts'] && dateRaw['date-parts'][0] && dateRaw['date-parts'][0][0]) {
+            yearNum = parseInt(dateRaw['date-parts'][0][0], 10) || 0;
+          } else {
+            const match = String(dateRaw).match(/\b\d{4}\b/);
+            if (match) yearNum = parseInt(match[0], 10);
+          }
+        }
+        if (yearNum > 0) yearStr = String(yearNum);
+
+        // URL / DOI
+        let linkUrl = '';
+        if (d.DOI) {
+          const cleanDoi = d.DOI.replace(/^https?:\/\/doi\.org\//, '');
+          linkUrl = `https://doi.org/${cleanDoi}`;
+        } else if (d.URL || d.url) {
+          linkUrl = d.URL || d.url;
+        }
+
+        // Abstract
+        const abstract = (d.abstract || d.abstractNote || '').trim();
+
+        // Item Type Display Label
+        const rawType = (d.type || d.itemType || 'other').toLowerCase();
+        const itemTypeDisplay = typeMapping[rawType] || 'Other';
+
+        // Tags / Keywords
+        let tags = [];
+        if (typeof d.keyword === 'string' && d.keyword.trim().length > 0) {
+          tags = d.keyword.split(/[,;]+/).map(t => t.trim()).filter(Boolean);
+        } else if (Array.isArray(d.keywords)) {
+          tags = d.keywords.map(k => typeof k === 'string' ? k.trim() : (k.tag || '')).filter(Boolean);
+        } else if (Array.isArray(d.tags)) {
+          tags = d.tags.map(t => typeof t === 'string' ? t.trim() : (t.tag || '')).filter(Boolean);
+        }
+
+        return {
+          id: d.id || `item-${idx + 1}`,
+          title,
+          authors,
+          firstAuthorLastName,
+          yearNum,
+          yearStr,
+          linkUrl,
+          abstract,
+          itemTypeDisplay,
+          tags
+        };
+      }).filter(Boolean);
+
+      populateYearFilter();
+      expandedAbstracts.clear();
+      handleFilterAndSort();
+    }
+
+    // Populate Year Filter Dropdown
+    function populateYearFilter() {
+      const yearSelect = document.getElementById('yearFilter');
+      const years = new Set();
+      processedItems.forEach(item => {
+        if (item.yearNum > 0) years.add(item.yearNum);
+      });
+
+      const sortedYears = Array.from(years).sort((a, b) => b - a);
+      yearSelect.innerHTML = '<option value="ALL">All Years</option>';
+      sortedYears.forEach(y => {
+        const option = document.createElement('option');
+        option.value = y;
+        option.textContent = y;
+        yearSelect.appendChild(option);
+      });
+    }
+
+    // Render Filter Pills for Item Types with Counts
+    function renderItemTypePills(filteredBySearchAndYear) {
+      const pillsContainer = document.getElementById('itemTypePills');
+      
+      const counts = { 'ALL': filteredBySearchAndYear.length };
+      filteredBySearchAndYear.forEach(item => {
+        counts[item.itemTypeDisplay] = (counts[item.itemTypeDisplay] || 0) + 1;
+      });
+
+      const standardTypes = [
+        'ALL', 'Book', 'Book Chapter', 'Conference Paper', 
+        'Journal Article', 'Newspaper Article', 'Other', 'Report', 'Web Page'
+      ];
+
+      Object.keys(counts).forEach(type => {
+        if (!standardTypes.includes(type)) {
+          standardTypes.push(type);
+        }
+      });
+
+      pillsContainer.innerHTML = '';
+
+      standardTypes.forEach(typeKey => {
+        const count = counts[typeKey] || 0;
+        if (count === 0 && typeKey !== 'ALL' && selectedItemType !== typeKey) return;
+
+        const label = typeKey === 'ALL' ? `All (${count})` : `${typeKey} (${count})`;
+        const isSelected = selectedItemType === typeKey;
+
+        const btn = document.createElement('button');
+        btn.className = `px-3.5 py-1.5 rounded-full font-medium text-xs sm:text-sm transition ${
+          isSelected ? 'pill-active shadow-sm' : 'pill-inactive'
+        }`;
+        btn.textContent = label;
+        btn.onclick = () => {
+          selectedItemType = typeKey;
+          handleFilterAndSort();
+        };
+        pillsContainer.appendChild(btn);
+      });
+    }
+
+    // Filter and Sort Handler
+    function handleFilterAndSort() {
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+      selectedYear = document.getElementById('yearFilter').value;
+
+      let filtered = processedItems.filter(item => {
+        const matchesSearch = 
+          !searchQuery ||
+          item.title.toLowerCase().includes(searchQuery) ||
+          item.authors.toLowerCase().includes(searchQuery) ||
+          item.abstract.toLowerCase().includes(searchQuery) ||
+          item.tags.some(t => t.toLowerCase().includes(searchQuery));
+
+        const matchesYear = 
+          selectedYear === 'ALL' || 
+          String(item.yearNum) === selectedYear;
+
+        // Missing Data Filter Conditions
+        let matchesMissing = true;
+        const hasNoAbstract = !item.abstract;
+        const hasNoLink = !item.linkUrl;
+
+        if (selectedMissingFilter === 'NO_ABSTRACT') {
+          matchesMissing = hasNoAbstract;
+        } else if (selectedMissingFilter === 'NO_LINK') {
+          matchesMissing = hasNoLink;
+        } else if (selectedMissingFilter === 'NO_EITHER') {
+          matchesMissing = hasNoAbstract || hasNoLink;
+        }
+
+        return matchesSearch && matchesYear && matchesMissing;
+      });
+
+      renderItemTypePills(filtered);
+
+      if (selectedItemType !== 'ALL') {
+        filtered = filtered.filter(item => item.itemTypeDisplay === selectedItemType);
+      }
+
+      filtered.sort((a, b) => {
+        if (currentSort === 'title') {
+          return a.title.localeCompare(b.title);
+        } else if (currentSort === 'year') {
+          return b.yearNum - a.yearNum || a.title.localeCompare(b.title);
+        } else if (currentSort === 'author') {
+          return a.firstAuthorLastName.localeCompare(b.firstAuthorLastName) || a.title.localeCompare(b.title);
+        }
+        return 0;
+      });
+
+      renderArticles(filtered);
+    }
+
+    // Render Article Cards
+    function renderArticles(items) {
+      const container = document.getElementById('articlesContainer');
+      container.innerHTML = '';
+
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl p-12 text-center text-gray-500 shadow-sm border border-gray-100">
+            <p class="text-lg font-medium">No matching research articles found.</p>
+            <p class="text-sm text-gray-400 mt-1">Try resetting your search query or filters.</p>
+          </div>
+        `;
+        return;
+      }
+
+      items.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100/80 flex flex-col sm:flex-row items-start gap-4 sm:gap-8 transition hover:shadow-md";
+
+        const displayIndex = index + 1;
+        const isAbstractExpanded = expandedAbstracts.has(item.id);
+
+        card.innerHTML = `
+          <!-- Left Index Number -->
+          <div class="text-index-teal font-bold text-lg sm:text-xl min-w-[40px] pt-0.5">
+            ${displayIndex}
+          </div>
+
+          <!-- Content Body -->
+          <div class="flex-1 min-w-0">
+            <!-- Article Title -->
+            <h2 class="text-title-teal text-xl font-bold leading-snug mb-2">
+              ${escapeHtml(item.title)}
+            </h2>
+
+            <!-- Author(s) -->
+            <div class="text-gray-600 font-normal text-base mb-1">
+              ${escapeHtml(item.authors)}
+            </div>
+
+            <!-- Year -->
+            <div class="text-gray-500 text-sm italic mb-3">
+              | ${item.yearStr}
+            </div>
+
+            <!-- DOI / Link Button -->
+            ${item.linkUrl ? `
+              <div class="mb-3">
+                <a 
+                  href="${escapeHtml(item.linkUrl)}" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  class="inline-block bg-[#004f60] hover:bg-[#003946] text-white text-xs font-semibold px-3 py-1 rounded transition shadow-sm"
+                >
+                  Link
+                </a>
+              </div>
+            ` : ''}
+
+            <!-- Abstract Dropdown Toggle -->
+            ${item.abstract ? `
+              <div class="mb-3">
+                <button 
+                  onclick="toggleAbstract('${item.id}')" 
+                  class="text-teal-700 hover:text-teal-900 font-semibold text-sm flex items-center gap-1 focus:outline-none"
+                >
+                  <span class="text-xs">${isAbstractExpanded ? '▲' : '▼'}</span> Abstract
+                </button>
+                ${isAbstractExpanded ? `
+                  <div class="mt-2 p-4 bg-slate-50 border border-slate-200/80 rounded-xl text-gray-700 text-sm leading-relaxed">
+                    ${escapeHtml(item.abstract)}
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+
+            <!-- Tags / Keywords Badges -->
+            ${item.tags.length > 0 ? `
+              <div class="mt-3 flex flex-wrap gap-1">
+                ${item.tags.map(tag => `<span class="tag-badge">${escapeHtml(tag)}</span>`).join('')}
+              </div>
+            ` : ''}
+
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // Toggle Abstract Visibility
+    function toggleAbstract(itemId) {
+      if (expandedAbstracts.has(itemId)) {
+        expandedAbstracts.delete(itemId);
+      } else {
+        expandedAbstracts.add(itemId);
+      }
+      handleFilterAndSort();
+    }
+
+    // Set Missing Data Filter Mode
+    function setMissingFilter(filterMode) {
+      selectedMissingFilter = filterMode;
+
+      const btnNone = document.getElementById('btnMissingNone');
+      const btnAbstract = document.getElementById('btnMissingAbstract');
+      const btnLink = document.getElementById('btnMissingLink');
+      const btnEither = document.getElementById('btnMissingEither');
+
+      btnNone.className = `px-3.5 py-1 rounded-full font-medium transition ${filterMode === 'NONE' ? 'pill-active' : 'pill-inactive'}`;
+      btnAbstract.className = `px-3.5 py-1 rounded-full font-medium transition ${filterMode === 'NO_ABSTRACT' ? 'pill-missing-active' : 'pill-missing-inactive'}`;
+      btnLink.className = `px-3.5 py-1 rounded-full font-medium transition ${filterMode === 'NO_LINK' ? 'pill-missing-active' : 'pill-missing-inactive'}`;
+      btnEither.className = `px-3.5 py-1 rounded-full font-medium transition ${filterMode === 'NO_EITHER' ? 'pill-missing-active' : 'pill-missing-inactive'}`;
+
+      handleFilterAndSort();
+    }
+
+    // Set Active Sort Method
+    function setSort(sortType) {
+      currentSort = sortType;
+
+      const btnTitle = document.getElementById('sortTitle');
+      const btnYear = document.getElementById('sortYear');
+      const btnAuthor = document.getElementById('sortAuthor');
+
+      btnTitle.className = `px-4 py-1.5 rounded-full font-medium transition ${sortType === 'title' ? 'pill-active shadow-sm' : 'pill-inactive'}`;
+      btnYear.className = `px-4 py-1.5 rounded-full font-medium transition ${sortType === 'year' ? 'pill-active shadow-sm' : 'pill-inactive'}`;
+      btnAuthor.className = `px-4 py-1.5 rounded-full font-medium transition ${sortType === 'author' ? 'pill-active shadow-sm' : 'pill-inactive'}`;
+
+      handleFilterAndSort();
+    }
+
+    // Security Helper
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
