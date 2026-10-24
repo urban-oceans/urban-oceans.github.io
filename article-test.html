@@ -79,13 +79,33 @@
 
   <!-- Header Section -->
   <header class="bg-header text-white py-8 px-4 text-center shadow-md relative">
-    <div class="max-w-7xl mx-auto flex flex-col items-center justify-center">
-      <div class="flex items-center gap-3 mb-1">
+    <div class="max-w-7xl mx-auto flex flex-col items-center justify-center relative">
+      <!-- Back to Home Page Button -->
+      <div class="absolute left-0 top-0 hidden sm:block">
+        <a 
+          href="https://urban-oceans.github.io/" 
+          class="inline-flex items-center gap-1.5 bg-[#0f3842] hover:bg-[#002730] text-teal-100 hover:text-white text-xs sm:text-sm font-medium px-4 py-2 rounded-full transition shadow-sm border border-teal-600/50"
+        >
+          <span>←</span> Back to Home Page
+        </a>
+      </div>
+
+      <div class="flex items-center gap-3 mb-1 mt-6 sm:mt-0">
         <!-- Wave Logo Icon -->
         <span class="text-4xl leading-none select-none">🌊</span>
         <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">Urban Oceans Library</h1>
       </div>
       <p class="text-teal-100 text-sm sm:text-base font-normal">Metro Vancouver Urban Oceans Literature Library</p>
+
+      <!-- Mobile Back to Home Page Button (Stacked) -->
+      <div class="mt-4 sm:hidden">
+        <a 
+          href="https://urban-oceans.github.io/" 
+          class="inline-flex items-center gap-1.5 bg-[#0f3842] hover:bg-[#002730] text-teal-100 hover:text-white text-xs font-medium px-4 py-2 rounded-full transition shadow-sm border border-teal-600/50"
+        >
+          <span>←</span> Back to Home Page
+        </a>
+      </div>
     </div>
   </header>
 
@@ -343,6 +363,32 @@
       return (2 * intersection) / (bg1.size + bg2.size);
     }
 
+    // Excel Column Header Comparator:
+    function getExcelColumnOrderValue(str) {
+      const clean = str.replace(/[^A-Za-z]/g, '').toUpperCase();
+      if (!clean) return { length: 0, val: str.toUpperCase() };
+
+      let val = 0;
+      for (let i = 0; i < clean.length; i++) {
+        val *= 26;
+        val += clean.charCodeAt(i) - 64;
+      }
+      return { length: clean.length, val: val, full: str.toUpperCase() };
+    }
+
+    function compareExcelColumns(a, b) {
+      const objA = getExcelColumnOrderValue(a);
+      const objB = getExcelColumnOrderValue(b);
+
+      if (objA.length !== objB.length) {
+        return objA.length - objB.length;
+      }
+      if (objA.val !== objB.val) {
+        return objA.val - objB.val;
+      }
+      return a.localeCompare(b);
+    }
+
     // Process CSL / Zotero JSON and integrate CSV tags
     function loadData(jsonData, csvParsed) {
       const itemsArray = Array.isArray(jsonData) ? jsonData : (jsonData.items || [jsonData]);
@@ -480,6 +526,7 @@
         combinedTags.forEach(t => tagSet.add(t));
 
         return {
+          originalIndex: idx + 1, // Permanent fixed index assigned on load
           id: d.id || `item-${idx + 1}`,
           title,
           authors,
@@ -495,7 +542,8 @@
         };
       }).filter(Boolean);
 
-      allAvailableTags = Array.from(tagSet).sort((a, b) => a.localeCompare(b));
+      // Sort tags using Excel column order (A-Z then AA, AB, AC...)
+      allAvailableTags = Array.from(tagSet).sort(compareExcelColumns);
       
       // Initially select all tags so all articles show by default
       selectedTags = new Set(allAvailableTags);
@@ -678,10 +726,9 @@
           selectedYear === 'ALL' || 
           String(item.yearNum) === selectedYear;
 
-        // Tag Filter: item must contain at least one of the selected tags (or all tags if desired; here any selected tag intersection)
         let matchesTags = true;
         if (selectedTags.size === 0) {
-          matchesTags = false; // if no tags selected, show nothing or allow all? Let's say if 0 selected, show none.
+          matchesTags = false;
         } else {
           matchesTags = item.tags.some(t => selectedTags.has(t));
         }
@@ -724,12 +771,11 @@
         return;
       }
 
-      items.forEach((item, index) => {
+      items.forEach((item) => {
         const card = document.createElement('div');
         card.className = "bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100/80 flex flex-col sm:flex-row items-start gap-4 sm:gap-8 transition hover:shadow-md";
 
-        // Format Index starting from 001 with 3 digits
-        const displayIndex = String(index + 1).padStart(3, '0');
+        const displayIndex = String(item.originalIndex).padStart(3, '0');
         const isAbstractExpanded = expandedAbstracts.has(item.id);
 
         card.innerHTML = `
@@ -846,7 +892,7 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-      return isAttr ? safe.replace(/"/g, '&quot;').replace(/'/g, "&#39;") : safe;
+      return isAttr ? safe.replace(/"/g, '&quot;').replace(/'/g, "&#039;") : safe;
     }
   </script>
 </body>
