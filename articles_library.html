@@ -214,18 +214,21 @@
         // Title
         const title = d.title || 'Untitled';
 
-        // Authors
+        // Authors & Last Name extraction
         let authors = 'N/A';
-        if (Array.isArray(d.author)) {
+        let firstAuthorLastName = '';
+        if (Array.isArray(d.author) && d.author.length > 0) {
           authors = d.author
             .map(a => a.literal || `${a.given || ''} ${a.family || ''}`.trim())
             .filter(Boolean)
             .join(', ');
-        } else if (Array.isArray(d.creators)) {
+          firstAuthorLastName = (d.author[0].family || d.author[0].literal || '').toLowerCase();
+        } else if (Array.isArray(d.creators) && d.creators.length > 0) {
           authors = d.creators
             .map(c => c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim())
             .filter(Boolean)
             .join(', ');
+          firstAuthorLastName = (d.creators[0].lastName || d.creators[0].name || '').toLowerCase();
         }
 
         // Year
@@ -272,6 +275,7 @@
           id: d.id || `item-${idx + 1}`,
           title,
           authors,
+          firstAuthorLastName,
           yearNum,
           yearStr,
           linkUrl,
@@ -378,7 +382,7 @@
         } else if (currentSort === 'year') {
           return b.yearNum - a.yearNum || a.title.localeCompare(b.title);
         } else if (currentSort === 'author') {
-          return a.authors.localeCompare(b.authors);
+          return a.firstAuthorLastName.localeCompare(b.firstAuthorLastName) || a.title.localeCompare(b.title);
         }
         return 0;
       });
